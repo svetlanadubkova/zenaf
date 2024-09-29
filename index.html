@@ -13,7 +13,7 @@
         :root {
             --primary-bg: #0a0a0a;
             --primary-text: #f0f0f0;
-            --accent-color: #ff69b4;
+            --accent-color: #ff0000;
         }
 
         * {
@@ -39,33 +39,6 @@
             height: 100%;
             z-index: -1;
             pointer-events: none;
-        }
-
-        .scrolling-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px 0;
-            background: rgba(10, 10, 10, 0.5);
-            color: var(--primary-text);
-            font-size: 14px;
-            text-align: center;
-            z-index: 1000;
-            white-space: nowrap;
-            overflow: hidden;
-            backdrop-filter: blur(5px);
-        }
-
-        .banner-content {
-            display: inline-block;
-            padding-left: 100%;
-            animation: scroll-left 30s linear infinite;
-        }
-
-        @keyframes scroll-left {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
         }
 
         .section {
@@ -224,18 +197,13 @@
     <div id="canvas-container"></div>
     <div class="custom-cursor"></div>
 
-    <div class="scrolling-banner">
-        <div class="banner-content">
-            transcend the chaos • embrace the void • find your fucking zen • mindfulness for the modern mess
-        </div>
+    <div class="image-container">
+        <video autoplay muted loop id="video-hero">
+            <source src="https://i.imgur.com/G0uEvDQ.mp4" type="video/mp4">
+        </video>
     </div>
 
     <section id="hero" class="section">
-        <div class="image-container">
-          <video autoplay muted loop id="video-hero">
-              <source src="https://i.imgur.com/G0uEvDQ.mp4" type="video/mp4">
-          </video>
-        </div>
         <div class="content">
             <h1>zen as fuck</h1>
             <p>mindfulness for the modern mess</p>
@@ -244,64 +212,30 @@
     </section>
 
     <section id="transcend" class="section">
-        <div class="image-container">
-          <video autoplay muted loop id="video-transcend">
-              <source src="https://i.imgur.com/pNKOjgR.mp4" type="video/mp4">
-          </video>
-        </div>
         <div class="content">
-            <h2>transcend the ordinary</h2>
-            <p>no-bs mindfulness meditation</p>
-            <p>stress-busting techniques</p>
-            <p>laughter-infused relaxation</p>
-        </div>
-    </section>
-
-    <section id="breath-work" class="section">
-        <div class="image-container">
-          <video autoplay muted loop id="video-breath-work">
-              <source src="https://i.imgur.com/nlCOsQP.mp4" type="video/mp4">
-          </video>
-        </div>
-        <div class="content">
-            <h2>breathe the fuck out</h2>
-            <p>follow the circle. inhale as it expands, exhale as it contracts. simple as fuck.</p>
-            <div id="breath-animation">breathe</div>
-        </div>
-    </section>
-
-    <section id="perfect" class="section">
-        <div class="image-container">
-          <video autoplay muted loop id="video-perfect">
-              <source src="https://i.imgur.com/G0uEvDQ.mp4" type="video/mp4">
-          </video>
-        </div>
-        <div class="content">
-            <h2>perfect for:</h2>
-            <p>overworked tech bros seeking digital detox</p>
-            <p>stressed-out healthcare heroes craving inner peace</p>
-            <p>anyone who needs to calm the fuck down and find their zen</p>
+            <div class="left-content">
+                <h2>transcend the ordinary</h2>
+                <p>no-bs mindfulness meditation</p>
+                <p>stress-busting techniques</p>
+                <p>laughter-infused relaxation</p>
+            </div>
+            <div class="right-content">
+                <h2>mindfulness meditations designed for:</h2>
+                <p>overworked tech bros&hoes seeking digital detox</p>
+                <p>stressed-out gig-workers craving inner peace</p>
+                <p>anyone who needs to calm tf down and find their zen</p>
+            </div>
         </div>
     </section>
 
     <section id="promise" class="section">
-        <div class="image-container">
-          <video autoplay muted loop id="video-promise">
-              <source src="https://i.imgur.com/pNKOjgR.mp4" type="video/mp4">
-          </video>
-        </div>
         <div class="content">
-            <h2>our promise</h2>
+            <h2>let's make a deal.</h2>
             <p>we cut through the crap and guide you straight to the zen. no crystals, no gongs, just real techniques to help you navigate life's fuckery. discover your inner light, not your last nerve.</p>
         </div>
     </section>
 
     <section id="join" class="section">
-        <div class="image-container">
-          <video autoplay muted loop id="video-join">
-              <source src="https://i.imgur.com/nlCOsQP.mp4" type="video/mp4">
-          </video>
-        </div>
         <div class="content">
             <h2>join the movement</h2>
             <p>ready to get zen as fuck? elevate your consciousness and sign up for our free classes and newsletter.</p>
@@ -373,24 +307,6 @@
                 gsap.to(cursor, { scale: 1, duration: 0.3 });
             });
         });
-
-        // Breath animation
-        const breathAnimation = document.getElementById('breath-animation');
-        
-        function animateBreath() {
-            gsap.to(breathAnimation, {
-                scale: 1.5,
-                duration: 4,
-                yoyo: true,
-                repeat: -1,
-                ease: "power1.inOut",
-                onRepeat: () => {
-                    breathAnimation.textContent = breathAnimation.textContent === "inhale" ? "exhale" : "inhale";
-                }
-            });
-        }
-
-        animateBreath();
 
         // Scroll animations
         gsap.registerPlugin(ScrollTrigger);
