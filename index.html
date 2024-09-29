@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zen as fuck | transcendent mindfulness journey</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-bg: #0a0a0a;
+            --primary-text: #f0f0f0;
+            --accent-color: #ff69b4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            text-transform: lowercase;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .scrolling-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 0;
+            background: rgba(10, 10, 10, 0.5);
+            color: var(--primary-text);
+            font-size: 14px;
+            text-align: center;
+            z-index: 1000;
+            white-space: nowrap;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .banner-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-left 30s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 4rem 2rem;
+        }
+
+        .content {
+            max-width: 800px;
+            text-align: center;
+            z-index: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        h1, h2 {
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 10vw, 8rem);
+            letter-spacing: 0.1em;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-color);
+            opacity: 0.9;
+            transition: all 0.5s ease;
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+
+        p {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .image-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.7;
+            transition: opacity 0.5s ease;
+        }
+
+        .image-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
+        }
+
+        .newsletter-signup {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .newsletter-signup input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--primary-text);
+            color: var(--primary-text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            padding: 0.5rem;
+            width: 250px;
+            margin-right: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .newsletter-signup input::placeholder {
+            color: rgba(240,240,240,0.5);
+        }
+
+        .newsletter-signup button, .cta-button {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 30px;
+        }
+
+        .newsletter-signup button:hover, .cta-button:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            transform: translateY(-2px);
+        }
+
+        #breath-animation {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 105, 180, 0.3);
+            border-radius: 50%;
+            margin: 2rem auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            transition: transform 4s ease-in-out;
+        }
+
+        .disclaimer {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 1.5rem;
+            }
+
+            .newsletter-signup {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .newsletter-signup input {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="custom-cursor"></div>
+
+    <div class="scrolling-banner">
+        <div class="banner-content">
+            transcend the chaos • embrace the void • find your fucking zen • mindfulness for the modern mess
+        </div>
+    </div>
+
+    <section id="hero" class="section">
+        <div class="image-container">
+          <video autoplay muted loop id="video-hero">
+              <source src="https://i.imgur.com/G0uEvDQ.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="content">
+            <h1>zen as fuck</h1>
+            <p>mindfulness for the modern mess</p>
+            <a href="#join" class="cta-button">get zen now</a>
+        </div>
+    </section>
+
+    <section id="transcend" class="section">
+        <div class="image-container">
+          <video autoplay muted loop id="video-transcend">
+              <source src="https://i.imgur.com/pNKOjgR.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="content">
+            <h2>transcend the ordinary</h2>
+            <p>no-bs mindfulness meditation</p>
+            <p>stress-busting techniques</p>
+            <p>laughter-infused relaxation</p>
+        </div>
+    </section>
+
+    <section id="breath-work" class="section">
+        <div class="image-container">
+          <video autoplay muted loop id="video-breath-work">
+              <source src="https://i.imgur.com/nlCOsQP.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="content">
+            <h2>breathe the fuck out</h2>
+            <p>follow the circle. inhale as it expands, exhale as it contracts. simple as fuck.</p>
+            <div id="breath-animation">breathe</div>
+        </div>
+    </section>
+
+    <section id="perfect" class="section">
+        <div class="image-container">
+          <video autoplay muted loop id="video-perfect">
+              <source src="https://i.imgur.com/G0uEvDQ.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="content">
+            <h2>perfect for:</h2>
+            <p>overworked tech bros seeking digital detox</p>
+            <p>stressed-out healthcare heroes craving inner peace</p>
+            <p>anyone who needs to calm the fuck down and find their zen</p>
+        </div>
+    </section>
+
+    <section id="promise" class="section">
+        <div class="image-container">
+          <video autoplay muted loop id="video-promise">
+              <source src="https://i.imgur.com/pNKOjgR.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="content">
+            <h2>our promise</h2>
+            <p>we cut through the crap and guide you straight to the zen. no crystals, no gongs, just real techniques to help you navigate life's fuckery. discover your inner light, not your last nerve.</p>
+        </div>
+    </section>
+
+    <section id="join" class="section">
+        <div class="image-container">
+          <video autoplay muted loop id="video-join">
+              <source src="https://i.imgur.com/nlCOsQP.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="content">
+            <h2>join the movement</h2>
+            <p>ready to get zen as fuck? elevate your consciousness and sign up for our free classes and newsletter.</p>
+            <div class="newsletter-signup">
+                <input type="email" placeholder="your fucking email" required>
+                <button type="submit">transcend now</button>
+            </div>
+            <p class="disclaimer">disclaimer: if you're offended by colorful language, this might not be your cosmic cup of fucking tea.</p>
+        </div>
+    </section>
+
+    <script>
+        let particles = [];
+
+        function setup() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('canvas-container');
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function draw() {
+            clear();
+            for (let particle of particles) {
+                particle.update();
+                particle.display();
+            }
+        }
+
+        class Particle {
+            constructor() {
+                this.pos = createVector(random(width), random(height));
+                this.vel = createVector(random(-0.5, 0.5), random(-0.5, 0.5));
+                this.size = random(2, 5);
+                this.color = color(255, 105, 180, 100);
+            }
+
+            update() {
+                this.pos.add(this.vel);
+                if (this.pos.x < 0 || this.pos.x > width) this.vel.x *= -1;
+                if (this.pos.y < 0 || this.pos.y > height) this.vel.y *= -1;
+            }
+
+            display() {
+                noStroke();
+                fill(this.color);
+                ellipse(this.pos.x, this.pos.y, this.size);
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+
+        // Custom cursor
+        const cursor = document.querySelector('.custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Interactive elements hover effect
+        document.querySelectorAll('button, .cta-button, .content').forEach(element => {
+            element.addEventListener('mouseenter', () => {
+                gsap.to(cursor, { scale: 2, duration: 0.3 });
+            });
+            element.addEventListener('mouseleave', () => {
+                gsap.to(cursor, { scale: 1, duration: 0.3 });
+            });
+        });
+
+        // Breath animation
+        const breathAnimation = document.getElementById('breath-animation');
+        
+        function animateBreath() {
+            gsap.to(breathAnimation, {
+                scale: 1.5,
+                duration: 4,
+                yoyo: true,
+                repeat: -1,
+                ease: "power1.inOut",
+                onRepeat: () => {
+                    breathAnimation.textContent = breathAnimation.textContent === "inhale" ? "exhale" : "inhale";
+                }
+            });
+        }
+
+        animateBreath();
+
+        // Scroll animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.utils.toArray('.section').forEach((section, i) => {
+            const content = section.querySelector('.content');
+            
+            gsap.fromTo(content, 
+                { opacity: 0, y: 50 },
+                {
+                    opacity: 1, 
+                    y: 0,
+                    duration: 1,
+                    scrollTrigger: {
+                        trigger: section,
+                        start: 'top 80%',
+                        end: 'bottom 20%',
+                        scrub: true,
+                        toggleActions: 'play reverse play reverse'
+                    }
+                }
+            );
+        });
+
+        // Smooth section transitions
+        const sections = document.querySelectorAll('.section');
+
+        sections.forEach((section, index) => {
+            ScrollTrigger.create({
+                trigger: section,
+                start: 'top center',
+                end: 'bottom center',
+                onEnter: () => {
+                    gsap.to(section.querySelector('.image-container'), { opacity: 0.7, duration: 1 });
+                    gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0)', duration: 1 });
+                },
+                onLeave: () => {
+                    gsap.to(section.querySelector('.image-container'), { opacity: 0.3, duration: 1 });
+                    gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0.7)', duration: 1 });
+                },
+                onEnterBack: () => {
+                gsap.to(section.querySelector('.image-container'), { opacity: 0.7, duration: 1 });
+                gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0)', duration: 1 });
+            },
+            onLeaveBack: () => {
+                gsap.to(section.querySelector('.image-container'), { opacity: 0.3, duration: 1 });
+                gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0.7)', duration: 1 });
+            }
+        });
+    });
+
+    // Newsletter signup
+    const newsletterForm = document.querySelector('.newsletter-signup');
+    newsletterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = newsletterForm.querySelector('input').value;
+        if (email) {
+            alert('welcome to zen as fuck. your cosmic journey begins now.');
+            newsletterForm.querySelector('input').value = '';
+        } else {
+            alert('please enter your fucking email to join the zen revolution.');
+        }
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+
+    // Initialize
+    setup();
+</script>
