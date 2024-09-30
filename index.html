@@ -3,18 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>zen as fuck | transcendent mindfulness journey</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <title>zen as fuck | transcendent experience</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap');
-
-        :root {
-            --primary-bg: #0a0a0a;
-            --primary-text: #f0f0f0;
-            --accent-color: #ff0000;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
 
         * {
             margin: 0;
@@ -23,88 +16,91 @@
         }
 
         body, html {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--primary-bg);
-            color: var(--primary-text);
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            text-transform: lowercase;
+            font-family: 'Space Mono', monospace;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            cursor: none;
         }
 
-        #canvas-container {
+        #scene-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
-            pointer-events: none;
         }
 
-        .section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            padding: 4rem 2rem;
-        }
-
-        .content {
-            max-width: 800px;
-            text-align: center;
-            z-index: 1;
-            transition: opacity 0.5s ease;
-        }
-
-        h1, h2 {
-            margin-bottom: 1rem;
-        }
-
-        h1 {
-            font-size: clamp(3rem, 10vw, 8rem);
-            letter-spacing: 0.1em;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px var(--accent-color);
-            opacity: 0.9;
-            transition: all 0.5s ease;
-        }
-
-        h2 {
-            font-size: clamp(1.5rem, 4vw, 3rem);
-            font-weight: 400;
-            margin-bottom: 2rem;
-        }
-
-        p {
-            font-size: clamp(1rem, 1.2vw, 1.2rem);
-            line-height: 1.8;
-            margin-bottom: 1.5rem;
-            font-weight: 300;
-        }
-
-        .image-container {
-            position: absolute;
+        #video-container {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            opacity: 0.7;
-            transition: opacity 0.5s ease;
+            z-index: -2;
+            opacity: 0.5;
         }
 
-        .image-container video {
+        #video-hero {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: -1;
+        }
+
+        .content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 10vw, 8rem);
+            line-height: 1;
+            margin-bottom: 1rem;
+            text-transform: lowercase;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            background-color: #fff;
+            color: #000;
         }
 
         .custom-cursor {
             width: 20px;
             height: 20px;
-            border: 2px solid var(--accent-color);
+            border: 2px solid #fff;
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
@@ -113,61 +109,49 @@
             transition: transform 0.1s ease;
         }
 
-        .newsletter-signup {
-            margin-top: 2rem;
+        .navigation {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            background-color: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background-color: #fff;
+            transform: scale(1.5);
+        }
+
+        .newsletter-signup {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
         }
 
         .newsletter-signup input {
+            padding: 1rem;
+            width: 100%;
+            max-width: 300px;
             background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--primary-text);
-            color: var(--primary-text);
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
-            padding: 0.5rem;
-            width: 250px;
-            margin-right: 10px;
-            margin-bottom: 1rem;
+            border: 2px solid #fff;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
         }
 
         .newsletter-signup input::placeholder {
-            color: rgba(240,240,240,0.5);
-        }
-
-        .newsletter-signup button, .cta-button {
-            background: transparent;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
-            padding: 0.8rem 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 30px;
-        }
-
-        .newsletter-signup button:hover, .cta-button:hover {
-            background: var(--accent-color);
-            color: var(--primary-bg);
-            transform: translateY(-2px);
-        }
-
-        #breath-animation {
-            width: 100px;
-            height: 100px;
-            background-color: rgba(255, 105, 180, 0.3);
-            border-radius: 50%;
-            margin: 2rem auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--accent-color);
-            transition: transform 4s ease-in-out;
+            color: rgba(255,255,255,0.7);
         }
 
         .disclaimer {
@@ -178,209 +162,166 @@
 
         @media (max-width: 768px) {
             .content {
-                padding: 1.5rem;
-            }
-
-            .newsletter-signup {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .newsletter-signup input {
-                margin-right: 0;
-                margin-bottom: 1rem;
+                width: 90%;
             }
         }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div class="custom-cursor"></div>
-
-    <div class="image-container">
+    <div id="scene-container"></div>
+    <div id="video-container">
         <video autoplay muted loop id="video-hero">
             <source src="https://i.imgur.com/vG0sHTA.mp4" type="video/mp4">
         </video>
     </div>
+    <div class="custom-cursor"></div>
 
-    <section id="hero" class="section">
-        <div class="content">
-            <h1>zen as fuck</h1>
-            <p>mindfulness for the modern mess</p>
-            <a href="#join" class="cta-button">get zen now</a>
-        </div>
-    </section>
+    <div class="content" id="hero">
+        <h1>zen as fuck</h1>
+        <p>mindfulness for the modern mess</p>
+        <a href="#" class="btn">get zen now</a>
+    </div>
 
-    <section id="transcend" class="section">
-        <div class="content">
-            <div class="left-content">
-                <h2>transcend the ordinary</h2>
-                <p>no-bs mindfulness meditation</p>
-                <p>stress-busting techniques</p>
-                <p>laughter-infused relaxation</p>
-            </div>
-            <div class="right-content">
-                <h2>mindfulness meditations designed for:</h2>
-                <p>overworked tech bros&hoes seeking digital detox</p>
-                <p>stressed-out gig-workers craving inner peace</p>
-                <p>anyone who needs to calm tf down and find their zen</p>
-            </div>
-        </div>
-    </section>
+    <div class="content" id="about">
+        <h2>transcend the ordinary</h2>
+        <p>no-bs mindfulness meditation</p>
+        <p>stress-busting techniques</p>
+        <p>laughter-infused relaxation</p>
+    </div>
 
-    <section id="promise" class="section">
-        <div class="content">
-            <h2>let's make a deal.</h2>
-            <p>we cut through the crap and guide you straight to the zen. no crystals, no gongs, just real techniques to help you navigate life's fuckery. discover your inner light, not your last nerve.</p>
-        </div>
-    </section>
+    <div class="content" id="for">
+        <h2>designed for:</h2>
+        <p>overworked tech bros seeking digital detox</p>
+        <p>stressed-out healthcare heroes craving inner peace</p>
+        <p>anyone who needs to calm the fuck down and find their zen</p>
+    </div>
 
-    <section id="join" class="section">
-        <div class="content">
-            <h2>join us</h2>
-            <p>ready to get zen as fuck? elevate your consciousness and sign up for our free classes and newsletter.</p>
-            <div class="newsletter-signup">
-                <input type="email" placeholder="your fucking email" required>
-                <button type="submit">transcend now</button>
-            </div>
-            <p class="disclaimer">disclaimer: if you're offended by colorful language, this might not be your cosmic cup of fucking tea.</p>
+    <div class="content" id="promise">
+        <h2>our fucking promise</h2>
+        <p>we cut through the crap and guide you straight to the zen. no crystals, no gongs, just real techniques to help you navigate life's fuckery. discover your inner light, not your last nerve.</p>
+    </div>
+
+    <div class="content" id="join">
+        <h2>join the zen revolution</h2>
+        <p>ready to get zen as fuck? elevate your consciousness and sign up for our free classes and newsletter.</p>
+        <div class="newsletter-signup">
+            <input type="email" placeholder="your fucking email" required>
+            <button class="btn">transcend now</button>
         </div>
-    </section>
+        <p class="disclaimer">disclaimer: if you're offended by colorful language, this might not be your cosmic cup of fucking tea.</p>
+    </div>
+
+    <div class="navigation">
+        <div class="nav-dot" data-index="0"></div>
+        <div class="nav-dot" data-index="1"></div>
+        <div class="nav-dot" data-index="2"></div>
+        <div class="nav-dot" data-index="3"></div>
+        <div class="nav-dot" data-index="4"></div>
+    </div>
 
     <script>
-        let particles = [];
+        let scene, camera, renderer, particles, raycaster, mouse, currentSection = 0;
+        const sections = document.querySelectorAll('.content');
+        const navDots = document.querySelectorAll('.nav-dot');
 
-        function setup() {
-            let canvas = createCanvas(windowWidth, windowHeight);
-            canvas.parent('canvas-container');
-            for (let i = 0; i < 100; i++) {
-                particles.push(new Particle());
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('scene-container').appendChild(renderer.domElement);
+
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            for (let i = 0; i < 5000; i++) {
+                vertices.push(THREE.MathUtils.randFloatSpread(2000));
+                vertices.push(THREE.MathUtils.randFloatSpread(2000));
+                vertices.push(THREE.MathUtils.randFloatSpread(2000));
             }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 3 });
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            camera.position.z = 500;
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+            document.addEventListener('wheel', onScroll, false);
+
+            animate();
+            showSection(currentSection);
         }
 
-        function draw() {
-            clear();
-            for (let particle of particles) {
-                particle.update();
-                particle.display();
-            }
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.x += 0.0001;
+            particles.rotation.y += 0.0001;
+            renderer.render(scene, camera);
         }
 
-        class Particle {
-            constructor() {
-                this.pos = createVector(random(width), random(height));
-                this.vel = createVector(random(-0.5, 0.5), random(-0.5, 0.5));
-                this.size = random(2, 5);
-                this.color = color(255, 105, 180, 100);
-            }
-
-            update() {
-                this.pos.add(this.vel);
-                if (this.pos.x < 0 || this.pos.x > width) this.vel.x *= -1;
-                if (this.pos.y < 0 || this.pos.y > height) this.vel.y *= -1;
-            }
-
-            display() {
-                noStroke();
-                fill(this.color);
-                ellipse(this.pos.x, this.pos.y, this.size);
-            }
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        function windowResized() {
-            resizeCanvas(windowWidth, windowHeight);
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(particles);
+            if (intersects.length > 0) {
+                intersects[0].object.material.color.set(0xff0000);
+            }
+
+            const cursor = document.querySelector('.custom-cursor');
+            cursor.style.left = `${event.clientX}px`;
+            cursor.style.top = `${event.clientY}px`;
         }
 
-        // Custom cursor
-        const cursor = document.querySelector('.custom-cursor');
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-        });
+        function onScroll(event) {
+            if (event.deltaY > 0 && currentSection < sections.length - 1) {
+                currentSection++;
+            } else if (event.deltaY < 0 && currentSection > 0) {
+                currentSection--;
+            }
+            showSection(currentSection);
+        }
 
-        // Interactive elements hover effect
-        document.querySelectorAll('button, .cta-button, .content').forEach(element => {
-            element.addEventListener('mouseenter', () => {
-                gsap.to(cursor, { scale: 2, duration: 0.3 });
-            });
-            element.addEventListener('mouseleave', () => {
-                gsap.to(cursor, { scale: 1, duration: 0.3 });
-            });
-        });
-
-        // Scroll animations
-        gsap.registerPlugin(ScrollTrigger);
-
-        gsap.utils.toArray('.section').forEach((section, i) => {
-            const content = section.querySelector('.content');
-            
-            gsap.fromTo(content, 
-                { opacity: 0, y: 50 },
-                {
-                    opacity: 1, 
-                    y: 0,
-                    duration: 1,
-                    scrollTrigger: {
-                        trigger: section,
-                        start: 'top 80%',
-                        end: 'bottom 20%',
-                        scrub: true,
-                        toggleActions: 'play reverse play reverse'
-                    }
+        function showSection(index) {
+            sections.forEach((section, i) => {
+                if (i === index) {
+                    section.style.opacity = 1;
+                } else {
+                    section.style.opacity = 0;
                 }
-            );
-        });
-
-        // Smooth section transitions
-        const sections = document.querySelectorAll('.section');
-
-        sections.forEach((section, index) => {
-            ScrollTrigger.create({
-                trigger: section,
-                start: 'top center',
-                end: 'bottom center',
-                onEnter: () => {
-                    gsap.to(section.querySelector('.image-container'), { opacity: 0.7, duration: 1 });
-                    gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0)', duration: 1 });
-                },
-                onLeave: () => {
-                    gsap.to(section.querySelector('.image-container'), { opacity: 0.3, duration: 1 });
-                    gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0.7)', duration: 1 });
-                },
-                onEnterBack: () => {
-                gsap.to(section.querySelector('.image-container'), { opacity: 0.7, duration: 1 });
-                gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0)', duration: 1 });
-            },
-            onLeaveBack: () => {
-                gsap.to(section.querySelector('.image-container'), { opacity: 0.3, duration: 1 });
-                gsap.to(section, { backgroundColor: 'rgba(10, 10, 10, 0.7)', duration: 1 });
-            }
-        });
-    });
-
-    // Newsletter signup
-    const newsletterForm = document.querySelector('.newsletter-signup');
-    newsletterForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = newsletterForm.querySelector('input').value;
-        if (email) {
-            alert('welcome to zen as fuck. your cosmic journey begins now.');
-            newsletterForm.querySelector('input').value = '';
-        } else {
-            alert('please enter your fucking email to join the zen revolution.');
+            });
+            navDots.forEach((dot, i) => {
+                if (i === index) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            gsap.to(camera.position, {
+                z: 500 - index * 100,
+                duration: 1,
+                ease: 'power2.inOut'
+            });
         }
-    });
 
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
+        navDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentSection = index;
+                showSection(currentSection);
             });
         });
-    });
 
-    // Initialize
-    setup();
-</script>
+        init();
+    </script>
+</body>
+</html>
