@@ -8,8 +8,7 @@ const questions = [
     { text: "What are you currently stressed about? Describe the situation in full and include names and be as specific as possible.", type: "textarea" },
     { text: "How are you feeling physically right now?", type: "text" },
     { text: "Where do you feel the most tension in your body?", type: "text" },
-    { text: "How much time do you have to calm the fuck down right now?", type: "select", options: ["5 min", "10 min", "20 min"] },
-    { text: "If you could describe your current situation in one word, what would it be?", type: "text" }
+    { text: "How much time do you have to calm the fuck down right now?", type: "select", options: ["5 min", "10 min", "20 min"] }
 ];
 
 let userResponses = {};
