@@ -391,14 +391,7 @@
             window.userResponses = {};
         }
 
-        function showSection(index) {
-            window.sections.forEach((section, i) => {
-                section.style.opacity = i === index ? 1 : 0;
-            });
-            window.navDots.forEach((dot, i) => {
-                i === index ? dot.classList.add('active') : dot.classList.remove('active');
-            });
-        }
+      
 
         function initThreeJS() {
             let scene, camera, renderer, particles;
