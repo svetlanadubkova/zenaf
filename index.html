@@ -281,115 +281,10 @@
     </div>
 
     <script>
-        let scene, camera, renderer, particles, raycaster, mouse, currentSection = 0;
-        const sections = document.querySelectorAll('.content');
-        const navDots = document.querySelectorAll('.nav-dot');
-
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('scene-container').appendChild(renderer.domElement);
-
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
-            for (let i = 0; i < 5000; i++) {
-                vertices.push(THREE.MathUtils.randFloatSpread(2000));
-                vertices.push(THREE.MathUtils.randFloatSpread(2000));
-                vertices.push(THREE.MathUtils.randFloatSpread(2000));
-            }
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 3 });
-            particles = new THREE.Points(geometry, material);
-            scene.add(particles);
-
-            camera.position.z = 500;
-
-            raycaster = new THREE.Raycaster();
-            mouse = new THREE.Vector2();
-
-            window.addEventListener('resize', onWindowResize, false);
-            document.addEventListener('mousemove', onMouseMove, false);
-            document.addEventListener('wheel', onScroll, false);
-
-            animate();
-            showSection(currentSection);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            particles.rotation.x += 0.0001;
-            particles.rotation.y += 0.0001;
-            renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function onMouseMove(event) {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(particles);
-            if (intersects.length > 0) {
-                intersects[0].object.material.color.set(0xff0000);
-            }
-
-            const cursor = document.querySelector('.custom-cursor');
-            cursor.style.left = `${event.clientX}px`;
-            cursor.style.top = `${event.clientY}px`;
-        }
-
-        function onScroll(event) {
-            if (event.deltaY > 0 && currentSection < sections.length - 1) {
-                currentSection++;
-            } else if (event.deltaY < 0 && currentSection > 0) {
-                currentSection--;
-            }
-            showSection(currentSection);
-        }
-
-        function showSection(index) {
-            sections.forEach((section, i) => {
-                if (i === index) {
-                    section.style.opacity = 1;
-                } else {
-                    section.style.opacity = 0;
-                }
-            });
-            navDots.forEach((dot, i) => {
-                if (i === index) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
-            });
-            gsap.to(camera.position, {
-                z: 500 - index * 100,
-                duration: 1,
-                ease: 'power2.inOut'
-            });
-        }
-
-        navDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                currentSection = index;
-                showSection(currentSection);
-            });
-        });
-
-        init();
-
-        // Meditation feature
-       // Meditation feature
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded and parsed');
 
-    const startButton = document.querySelector('.btn');
+    const startButton = document.getElementById('startMeditationBtn');
     const meditationOverlay = document.getElementById('meditationOverlay');
     const questionContainer = document.getElementById('questionContainer');
     const meditationContainer = document.getElementById('meditationContainer');
@@ -397,6 +292,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const endMeditationButton = document.getElementById('endMeditation');
 
     console.log('Start button:', startButton);
+
+    if (startButton) {
+        startButton.addEventListener('click', startMeditation);
+        console.log('Event listener added to start button');
+    } else {
+        console.error('Start button not found');
+    }
 
     const questions = [
         { id: 'name', text: "What's your name?", type: 'text' },
@@ -413,8 +315,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentQuestionIndex = 0;
     let userResponses = {};
 
-    startButton.addEventListener('click', startMeditation);
-    endMeditationButton.addEventListener('click', endMeditation);
+    if (endMeditationButton) {
+        endMeditationButton.addEventListener('click', endMeditation);
+    }
 
     function startMeditation(event) {
         console.log('Start meditation button clicked');
@@ -518,6 +421,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Make submitAnswer global so it can be called from HTML
     window.submitAnswer = submitAnswer;
 });
-    </script>
+</script>
 </body>
 </html>
