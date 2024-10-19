@@ -96,54 +96,56 @@
             background-color: #fff;
             color: #000;
         }
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
 
-.meditation-content {
-    background-color: #111;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 600px;
-}
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-#visualizer {
-    width: 100%;
-    height: 100px;
-    background-color: #222;
-    margin-bottom: 20px;
-}
+        .meditation-content {
+            background-color: #111;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+        }
 
-#meditationText {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-}
+        #visualizer {
+            width: 100%;
+            height: 100px;
+            background-color: #222;
+            margin-bottom: 20px;
+        }
 
-#questionContainer {
-    margin-bottom: 20px;
-}
+        #meditationText {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
 
-#questionContainer input,
-#questionContainer select,
-#questionContainer textarea {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    background-color: #222;
-    border: none;
-    color: #fff;
-    font-family: 'Space Mono', monospace;
-}
+        #questionContainer {
+            margin-bottom: 20px;
+        }
+
+        #questionContainer input,
+        #questionContainer select,
+        #questionContainer textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #222;
+            border: none;
+            color: #fff;
+            font-family: 'Space Mono', monospace;
+        }
+
         .custom-cursor {
             width: 20px;
             height: 20px;
@@ -226,7 +228,7 @@
     <div class="content" id="hero">
         <h1>zen as fuck</h1>
         <p>mindfulness for the modern mess</p>
-        <a href="#" class="btn">get zen now</a>
+        <a href="#" class="btn" id="startMeditationBtn">get zen now</a>
     </div>
 
     <div class="content" id="about">
@@ -382,7 +384,8 @@
 
         init();
 
-         const startButton = document.querySelector('.btn');
+        // Meditation feature
+        const startButton = document.getElementById('startMeditationBtn');
         const meditationOverlay = document.getElementById('meditationOverlay');
         const questionContainer = document.getElementById('questionContainer');
         const meditationContainer = document.getElementById('meditationContainer');
@@ -407,7 +410,8 @@
         startButton.addEventListener('click', startMeditation);
         endMeditationButton.addEventListener('click', endMeditation);
 
-        function startMeditation() {
+     function startMeditation(event) {
+            event.preventDefault();
             meditationOverlay.style.display = 'flex';
             showNextQuestion();
         }
@@ -499,8 +503,9 @@
             currentQuestionIndex = 0;
             userResponses = {};
         }
+
+        // Make submitAnswer global so it can be called from HTML
+        window.submitAnswer = submitAnswer;
     </script>
-    
-    
 </body>
 </html>
