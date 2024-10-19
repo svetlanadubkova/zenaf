@@ -1,5 +1,5 @@
 const express = require('express');
-const axios = require('axios');
+const WebSocket = require('ws');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -7,34 +7,51 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/generate-meditation', async (req, res) => {
-  try {
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: "You are a no-nonsense, profanity-using AI meditation guide. Your goal is to help the user relax and find inner peace through humor and relatability. Use the user's responses to personalize the meditation."
-        },
-        {
-          role: "user",
-          content: `Generate a personalized guided meditation based on these user responses: ${JSON.stringify(req.body)}`
-        }
-      ]
-    }, {
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', function connection(ws) {
+  console.log('Client connected');
+
+  const openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01', {
+    headers: {
+      "Authorization": "Bearer " + process.env.OPENAI_API_KEY,
+      "OpenAI-Beta": "realtime=v1",
+    },
+  });
+
+  openaiWs.on('open', function open() {
+    console.log('Connected to OpenAI server');
+    openaiWs.send(JSON.stringify({
+      type: "response.create",
+      response: {
+        modalities: ["text", "speech"],
+        instructions: "You are a no-nonsense, profanity-using AI meditation guide. Your goal is to help the user relax and find inner peace through humor and relatability. Use a direct, blunt, and humorous tone with occasional profanity. Start by asking the user about their current stressors and tailor the meditation to their responses.",
       }
-    });
-    res.status(200).json({ meditation: response.data.choices[0].message.content });
-  } catch (error) {
-    console.error('Error generating meditation:', error);
-    res.status(500).json({ error: 'Failed to generate meditation' });
-  }
+    }));
+  });
+
+  openaiWs.on('message', function incoming(message) {
+    console.log('Received from OpenAI:', JSON.parse(message.toString()));
+    ws.send(message);
+  });
+
+  ws.on('message', function incoming(message) {
+    console.log('Received from client:', JSON.parse(message.toString()));
+    openaiWs.send(message);
+  });
+
+  ws.on('close', function close() {
+    console.log('Client disconnected');
+    openaiWs.close();
+  });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const server = app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server running on port ${server.address().port}`);
+});
+
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+  });
 });

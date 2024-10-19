@@ -1,13 +1,13 @@
 {
   "name": "zenasfuck-backend",
   "version": "1.0.0",
-  "main": "api/generate-meditation.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node api/generate-meditation.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.17.1",
-    "axios": "^0.21.1",
+    "ws": "^8.5.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0"
   }
