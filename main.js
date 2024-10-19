@@ -85,9 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(event.data);
             if (data.type === 'content_block') {
                 if (data.content_block.type === 'text') {
-                    meditationText.innerHTML += `<p>${data.content_block.text}</p>`;
+                    const newParagraph = document.createElement('p');
+                    newParagraph.textContent = data.content_block.text;
+                    meditationText.appendChild(newParagraph);
+                    newParagraph.scrollIntoView({ behavior: 'smooth', block: 'end' });
                 } else if (data.content_block.type === 'speech') {
-                    // Handle speech output here (e.g., using Web Speech API)
                     const utterance = new SpeechSynthesisUtterance(data.content_block.text);
                     speechSynthesis.speak(utterance);
                 }
