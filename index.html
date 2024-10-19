@@ -246,7 +246,6 @@
         </div>
     </div>
 
-    <script src="meditation.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             console.log('DOM fully loaded and parsed');
@@ -254,7 +253,6 @@
             setupEventListeners();
             initializeQuestions();
             initThreeJS();
-            showSection(0); // Show the first section by default
         });
 
         function initializeDOMElements() {
@@ -264,8 +262,6 @@
             window.meditationContainer = document.getElementById('meditationContainer');
             window.meditationText = document.getElementById('meditationText');
             window.endMeditationButton = document.getElementById('endMeditation');
-            window.sections = document.querySelectorAll('.content');
-            window.navDots = document.querySelectorAll('.nav-dot');
         }
 
         function setupEventListeners() {
@@ -390,8 +386,6 @@
             window.currentQuestionIndex = 0;
             window.userResponses = {};
         }
-
-      
 
         function initThreeJS() {
             let scene, camera, renderer, particles;
