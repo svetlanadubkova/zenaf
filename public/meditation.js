@@ -3,7 +3,7 @@ async function startGuidedMeditation() {
     meditationContainer.style.display = 'block';
     
     try {
-        const response = await fetch('/api/generate-meditation', {
+        const response = await fetch('https://zenafaiguidedmeditation.onrender.com/generate-meditation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
