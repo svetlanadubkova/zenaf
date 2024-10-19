@@ -25,39 +25,59 @@ const AI_INSTRUCTIONS = `You are an AI-powered meditation guide for the "Zen as 
 function handleWebSocketConnection(ws) {
   console.log('Client connected');
 
-  const openaiWs = new WebSocket(OPENAI_WS_URL, {
-    headers: {
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
-      "OpenAI-Beta": "realtime=v1",
-    },
-  });
+  let openaiWs = null;
+  let connectionTimeout = null;
 
-  openaiWs.on('open', () => {
-    console.log('Connected to OpenAI server');
-    openaiWs.send(JSON.stringify({
-      type: "response.create",
-      response: {
-        modalities: ["text", "speech"],
-        instructions: AI_INSTRUCTIONS
-      }
-    }));
-  });
+  function connectToOpenAI() {
+    openaiWs = new WebSocket(OPENAI_WS_URL, {
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "OpenAI-Beta": "realtime=v1",
+      },
+    });
 
-  openaiWs.on('message', (message) => {
-    console.log('Received from OpenAI:', JSON.parse(message.toString()));
-    ws.send(message);
-  });
+    connectionTimeout = setTimeout(() => {
+      console.error('OpenAI WebSocket connection timeout');
+      openaiWs.close();
+      ws.close(1011, 'OpenAI connection timeout');
+    }, 10000); // 10 seconds timeout
 
-  openaiWs.on('error', (err) => {
-    console.error('OpenAI WebSocket error:', err);
-    ws.close(1011, 'Error connecting to AI service');
-  });
+    openaiWs.on('open', () => {
+      console.log('Connected to OpenAI server');
+      clearTimeout(connectionTimeout);
+      openaiWs.send(JSON.stringify({
+        type: "response.create",
+        response: {
+          modalities: ["text", "speech"],
+          instructions: AI_INSTRUCTIONS
+        }
+      }));
+    });
+
+    openaiWs.on('message', (message) => {
+      console.log('Received from OpenAI:', JSON.parse(message.toString()));
+      ws.send(message);
+    });
+
+    openaiWs.on('error', (err) => {
+      console.error('OpenAI WebSocket error:', err);
+      clearTimeout(connectionTimeout);
+      ws.close(1011, 'Error connecting to AI service');
+    });
+
+    openaiWs.on('close', (code, reason) => {
+      console.log(`OpenAI WebSocket closed with code ${code} and reason: ${reason}`);
+      clearTimeout(connectionTimeout);
+    });
+  }
+
+  connectToOpenAI();
 
   ws.on('message', (message) => {
     try {
       const parsedMessage = JSON.parse(message.toString());
       console.log('Received from client:', parsedMessage);
-      if (openaiWs.readyState === WebSocket.OPEN) {
+      if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
         openaiWs.send(message);
       } else {
         console.error('OpenAI WebSocket is not open');
@@ -69,9 +89,11 @@ function handleWebSocketConnection(ws) {
     }
   });
 
-  ws.on('close', () => {
-    console.log('Client disconnected');
-    openaiWs.close();
+  ws.on('close', (code, reason) => {
+    console.log(`Client disconnected with code ${code} and reason: ${reason}`);
+    if (openaiWs) {
+      openaiWs.close();
+    }
   });
 
   ws.on('error', (err) => {
