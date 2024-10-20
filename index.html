@@ -256,7 +256,7 @@
                 <canvas id="visualizer"></canvas>
                 <div id="meditationText"></div>
                 <div id="transcriptionText"></div>
-                <button id="endMeditation" class="btn">End Meditation</button>
+                <button id="endMeditation" class="btn">end meditation</button>
             </div>
             <div class="loading">
                 <p id="loadingMessage"></p>
@@ -381,17 +381,24 @@
         let socket;
         let audioContext;
         let analyser;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
 
         function startGuidedMeditation() {
             window.questionContainer.style.display = 'none';
             window.loadingElement.style.display = 'block';
             cycleLoadingMessages();
 
+            connectWebSocket();
+        }
+
+        function connectWebSocket() {
             console.log("Connecting to WebSocket server...");
             socket = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
             
             socket.onopen = function(event) {
                 console.log('Connected to server');
+                reconnectAttempts = 0;
                 socket.send(JSON.stringify({
                     type: "message.create",
                     message: {
@@ -414,20 +421,50 @@
 
             socket.onclose = function(event) {
                 console.log('Disconnected from server');
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    console.log(`Attempting to reconnect... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 3000); // Wait 3 seconds before trying to reconnect
+                } else {
+                    handleConnectionFailure();
+                }
             };
 
             socket.onerror = function(error) {
                 console.error('WebSocket error:', error);
-                window.loadingElement.style.display = 'none';
-                window.meditationText.textContent = 'Error connecting to meditation service. Please try again later.';
+                // The onclose handler will be called after this, so we'll handle reconnection there
             };
+        }
+
+        function handleConnectionFailure() {
+            window.loadingElement.style.display = 'none';
+            window.meditationContainer.style.display = 'block';
+            window.meditationText.innerHTML = `
+                <p>We're having trouble connecting to our zen servers right now. But don't let that stress you out!</p>
+                <p>Here's a quick meditation you can try:</p>
+                <ol>
+                    <li>Take a deep breath in for 4 seconds.</li>
+                    <li>Hold it for 4 seconds.</li>
+                    <li>Exhale slowly for 6 seconds.</li>
+                    <li>Repeat this 5 times, focusing on your breath.</li>
+                </ol>
+                <p>Remember, you're doing great just by taking a moment for yourself.</p>
+                <button onclick="retryConnection()" class="btn">Try Again</button>
+            `;
+        }
+
+        function retryConnection() {
+            window.meditationText.innerHTML = '';
+            window.loadingElement.style.display = 'block';
+            reconnectAttempts = 0;
+            connectWebSocket();
         }
 
         function cycleLoadingMessages() {
             const messages = [
                 "Preparing your zen...",
-                "give it a sec. chill is coming...",
-                "breathe. loading your peace...",
+                "give it a sec. chill is coming.",
+                "breathe. loading your peace.",
                 "almost zen time..."
             ];
             let index = 0;
