@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;"
 const OPENAI_WS_URL = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
 
 if (!OPENAI_API_KEY) {
@@ -36,12 +36,6 @@ function handleWebSocketConnection(ws) {
       },
     });
 
-    connectionTimeout = setTimeout(() => {
-      console.error('OpenAI WebSocket connection timeout');
-      openaiWs.close();
-      ws.close(1011, 'OpenAI connection timeout');
-    }, 10000); // 10 seconds timeout
-
     openaiWs.on('open', () => {
       console.log('Connected to OpenAI server');
       clearTimeout(connectionTimeout);
@@ -52,11 +46,6 @@ function handleWebSocketConnection(ws) {
           instructions: AI_INSTRUCTIONS
         }
       }));
-    });
-
-    openaiWs.on('message', (message) => {
-      console.log('Received from OpenAI:', JSON.parse(message.toString()));
-      ws.send(message);
     });
 
     openaiWs.on('error', (err) => {

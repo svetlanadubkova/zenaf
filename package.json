@@ -2,14 +2,15 @@
   "name": "zenasfuck-backend",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
+    "openai": "^4.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^10.0.0",
-    "express": "^4.21.1",
-    "ws": "^8.18.0"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "ws": "^8.13.0"
   }
 }

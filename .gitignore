@@ -1,0 +1,27 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# MacOS
+.DS_Store
+
+# IDEs and editors
+.idea/
+.vscode/
+*.sublime-workspace
+
+# Miscellaneous
+*.swp

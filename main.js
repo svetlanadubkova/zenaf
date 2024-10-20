@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questionContainer.style.display = 'none';
         meditationContainer.style.display = 'block';
 
-        const ws = new WebSocket('wss://zenafaiguidedmeditation.onrender.com'); // Replace with your actual backend URL
+        const ws = new WebSocket('ws://zenafaiguidedmeditation.onrender.com'); // Replace with your actual backend URL
 
         ws.onopen = () => {
             console.log('Connected to server');
