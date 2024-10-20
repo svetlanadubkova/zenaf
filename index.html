@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&family=Montserrat:wght@300;400;700&display=swap');
 
         * {
             margin: 0;
@@ -18,7 +18,7 @@
 
         body,
         html {
-            font-family: 'Space Mono', monospace;
+            font-family: 'Montserrat', sans-serif;
             background-color: #000;
             color: #fff;
             overflow: hidden;
@@ -41,7 +41,7 @@
             width: 100%;
             height: 100%;
             z-index: -2;
-            opacity: 0.8; /* Increased opacity to make video more visible */
+            opacity: 0.6;
         }
 
         #video-hero {
@@ -64,39 +64,47 @@
         }
 
         h1 {
-            font-size: clamp(3rem, 10vw, 8rem);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(4rem, 12vw, 10rem);
             line-height: 1;
             margin-bottom: 1rem;
             text-transform: lowercase;
+            letter-spacing: -0.05em;
+            font-weight: 300;
         }
 
         h2 {
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
-            margin-bottom: 1rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            margin-bottom: 1.5rem;
+            font-weight: 300;
         }
 
         p {
-            font-size: clamp(1rem, 2vw, 1.5rem);
-            margin-bottom: 1rem;
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
         .btn {
             display: inline-block;
-            padding: 1rem 2rem;
+            padding: 1rem 2.5rem;
             background-color: transparent;
             color: #fff;
-            border: 2px solid #fff;
+            border: 1px solid #fff;
             text-decoration: none;
-            font-weight: 700;
+            font-weight: 300;
             font-size: 1rem;
             transition: all 0.3s ease;
             cursor: pointer;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .btn:hover {
-            background-color: #fff;
-            color: #000;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
         }
 
         .overlay {
@@ -105,94 +113,108 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.8);
             z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(10px);
         }
 
         .meditation-content {
-            background-color: rgba(17, 17, 17, 0.6);
-            padding: 1.5rem;
-            border-radius: 10px;
+            background-color: rgba(17, 17, 17, 0.8);
+            padding: 3rem;
+            border-radius: 0;
             width: 90%;
-            max-width: 400px; /* Reduced max-width */
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            max-width: 600px;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
         }
 
         .close-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 20px;
+            right: 20px;
             background: none;
             border: none;
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 2rem;
             cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .close-btn:hover {
+            transform: rotate(90deg);
         }
 
         #visualizer {
             width: 100%;
-            height: 60px; /* Reduced height */
+            height: 80px;
             background-color: rgba(34, 34, 34, 0.6);
-            margin-bottom: 15px;
-            border-radius: 5px;
+            margin-bottom: 2rem;
+            border-radius: 0;
         }
 
         #meditationText {
-            font-size: 1rem;
-            margin-bottom: 15px;
-            line-height: 1.4;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+            font-weight: 300;
         }
 
         #questionContainer {
-            margin-bottom: 15px;
+            margin-bottom: 2rem;
         }
 
         #questionContainer input,
         #questionContainer select,
         #questionContainer textarea {
             width: 100%;
-            padding: 8px;
-            margin: 8px 0;
+            padding: 1rem;
+            margin: 1rem 0;
             background-color: rgba(34, 34, 34, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: #fff;
-            font-family: 'Space Mono', monospace;
+            font-family: 'Montserrat', sans-serif;
             transition: all 0.3s ease;
-            border-radius: 5px;
+            border-radius: 0;
+            font-size: 1rem;
         }
 
         #questionContainer input:focus,
         #questionContainer select:focus,
         #questionContainer textarea:focus {
             outline: none;
-            border-color: #ffc5e1;
-            box-shadow: 0 0 10px rgba(255, 179, 231, 0.929);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
 
         .custom-cursor {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
+            width: 40px;
+            height: 40px;
+            border: 1px solid #fff;
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
             z-index: 9999;
             mix-blend-mode: difference;
-            transition: transform 0.1s ease;
+            transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease;
+        }
+
+        .custom-cursor.active {
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
         }
 
         .loading {
             display: none;
             text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
+            margin-top: 2rem;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
         }
 
         .loading-dots::after {
@@ -209,13 +231,14 @@
         .disclaimer {
             font-size: 0.8rem;
             opacity: 0.7;
-            margin-top: 2rem;
+            margin-top: 3rem;
+            font-style: italic;
         }
 
         @media (max-width: 768px) {
             .meditation-content {
                 width: 95%;
-                padding: 1rem;
+                padding: 2rem;
             }
         }
     </style>
