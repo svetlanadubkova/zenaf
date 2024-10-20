@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const meditationContainer = document.getElementById('meditationContainer');
     const meditationText = document.getElementById('meditationText');
     const meditationOverlay = document.getElementById('meditationOverlay');
+    const loadingElement = document.querySelector('.loading');
+    const userNameSpan = document.getElementById('userName');
 
     startButton.addEventListener('click', () => {
         meditationOverlay.style.display = 'flex';
@@ -50,23 +52,41 @@ document.addEventListener('DOMContentLoaded', () => {
             questionContainer.innerHTML = `
                 <h3>${question.text}</h3>
                 ${inputHTML}
-                <button onclick="submitAnswer()">Next</button>
+                <button id="submitAnswer">Next</button>
             `;
+
+            const answerInput = document.getElementById('answer');
+            const submitButton = document.getElementById('submitAnswer');
+
+            answerInput.focus();
+
+            answerInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    submitAnswer();
+                }
+            });
+
+            submitButton.addEventListener('click', submitAnswer);
         } else {
             startMeditation();
         }
     }
 
-    window.submitAnswer = () => {
+    function submitAnswer() {
         const answer = document.getElementById('answer').value;
         userResponses[questions[currentQuestionIndex].text] = answer;
         currentQuestionIndex++;
         showQuestion();
-    };
+
+        if (currentQuestionIndex === 1) {
+            userNameSpan.textContent = answer;
+        }
+    }
 
     function startMeditation() {
         questionContainer.style.display = 'none';
-        meditationContainer.style.display = 'block';
+        loadingElement.style.display = 'block';
 
         // Use WSS instead of WS
         const ws = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
@@ -83,10 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         ws.onmessage = (event) => {
+            loadingElement.style.display = 'none';
+            meditationContainer.style.display = 'block';
+
             const data = JSON.parse(event.data);
             if (data.type === 'meditation') {
                 if (data.content) {
-                    meditationText.innerHTML += `<p>${data.content}</p>`;
+                    typeOutText(data.content);
                 }
                 if (data.audio) {
                     // Handle audio playback
@@ -100,11 +123,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ws.onerror = (error) => {
             console.error('WebSocket error:', error);
+            loadingElement.style.display = 'none';
             meditationText.innerHTML = '<p>Error connecting to meditation service. Please try again later.</p>';
         };
 
         ws.onclose = () => {
             console.log('Disconnected from server');
         };
+    }
+
+    function typeOutText(text) {
+        const words = text.split(' ');
+        let i = 0;
+        const intervalId = setInterval(() => {
+            if (i < words.length) {
+                meditationText.innerHTML += words[i] + ' ';
+                i++;
+            } else {
+                clearInterval(intervalId);
+            }
+        }, 200); // Adjust the speed as needed
     }
 });

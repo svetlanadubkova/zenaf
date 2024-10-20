@@ -105,19 +105,21 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.8);
             z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
+            backdrop-filter: blur(10px);
         }
 
         .meditation-content {
-            background-color: #111;
+            background-color: rgba(17, 17, 17, 0.8);
             padding: 2rem;
             border-radius: 10px;
             width: 80%;
             max-width: 600px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
 
         #visualizer {
@@ -142,10 +144,19 @@
             width: 100%;
             padding: 10px;
             margin: 10px 0;
-            background-color: #222;
-            border: none;
+            background-color: rgba(34, 34, 34, 0.8);
+            border: 2px solid #fff;
             color: #fff;
             font-family: 'Space Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        #questionContainer input:focus,
+        #questionContainer select:focus,
+        #questionContainer textarea:focus {
+            outline: none;
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
         }
 
         .custom-cursor {
@@ -216,6 +227,23 @@
                 width: 90%;
             }
         }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
     </style>
 </head>
 
@@ -243,6 +271,9 @@
                 <div id="meditationText"></div>
                 <button id="endMeditation" class="btn">End Meditation</button>
             </div>
+            <div class="loading">
+                Preparing your zen<span class="loading-dots"></span>
+            </div>
         </div>
     </div>
 
@@ -262,6 +293,7 @@
             window.meditationContainer = document.getElementById('meditationContainer');
             window.meditationText = document.getElementById('meditationText');
             window.endMeditationButton = document.getElementById('endMeditation');
+            window.loadingElement = document.querySelector('.loading');
         }
 
         function setupEventListeners() {
@@ -313,6 +345,16 @@
                     ${inputHTML}
                     <button onclick="submitAnswer()" class="btn">Next</button>
                 `;
+
+                const input = document.getElementById(question.id);
+                if (input) {
+                    input.addEventListener('keypress', function(event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            submitAnswer();
+                        }
+                    });
+                }
             } else {
                 startGuidedMeditation();
             }
@@ -346,19 +388,13 @@
 
         function startGuidedMeditation() {
             window.questionContainer.style.display = 'none';
-            window.meditationContainer.style.display = 'block';
+            window.loadingElement.style.display = 'block';
 
-
-            console.log("1111111")
-            // Connect to WebSocket server
+            console.log("Connecting to WebSocket server...");
             socket = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
-            console.log("22222222")
             
             socket.onopen = function(event) {
-                console.log("33333")
                 console.log('Connected to server');
-                // Send user responses to start the meditation
-                console.log("44444")
                 socket.send(JSON.stringify({
                     type: "start_meditation",
                     userResponses: window.userResponses
@@ -366,19 +402,43 @@
             };
             
             socket.onmessage = function(event) {
-                console.log("555555")
                 const message = JSON.parse(event.data);
                 if (message.type === 'meditation_text') {
-                    window.meditationText.textContent = message.content;
+                    window.loadingElement.style.display = 'none';
+                    window.meditationContainer.style.display = 'block';
+                    typeOutText(message.content);
                 } else if (message.type === 'meditation_audio') {
-                    // Implement audio playback here
-                    console.log("Playing audio:", message.content);
+                    playAudio(message.content);
                 }
             };
 
             socket.onclose = function(event) {
                 console.log('Disconnected from server');
             };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                window.loadingElement.style.display = 'none';
+                window.meditationText.textContent = 'Error connecting to meditation service. Please try again later.';
+            };
+        }
+
+        function typeOutText(text) {
+            const words = text.split(' ');
+            let i = 0;
+            const intervalId = setInterval(() => {
+                if (i < words.length) {
+                    window.meditationText.innerHTML += words[i] + ' ';
+                    i++;
+                } else {
+                    clearInterval(intervalId);
+                }
+            }, 200);
+        }
+
+        function playAudio(audioData) {
+            const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+            audio.play();
         }
 
         function endMeditation() {
@@ -389,6 +449,7 @@
             window.meditationText.textContent = '';
             window.questionContainer.style.display = 'block';
             window.meditationContainer.style.display = 'none';
+            window.loadingElement.style.display = 'none';
             window.currentQuestionIndex = 0;
             window.userResponses = {};
         }
@@ -424,11 +485,18 @@
             }
 
             animate();
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         }
 
         // Make submitAnswer global so it can be called from HTML
         window.submitAnswer = submitAnswer;
     </script>
-    <script src="main.js"></script>
 </body>
 </html>
