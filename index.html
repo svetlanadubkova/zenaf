@@ -122,6 +122,18 @@
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
 
         #visualizer {
@@ -194,6 +206,12 @@
             60%, 100% { content: '...'; }
         }
 
+        .disclaimer {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 2rem;
+        }
+
         @media (max-width: 768px) {
             .meditation-content {
                 width: 95%;
@@ -216,10 +234,12 @@
         <h1>zen as fuck</h1>
         <p>mindfulness for the modern mess</p>
         <a href="#" class="btn" id="startMeditationBtn">get zen now</a>
+        <p class="disclaimer">disclaimer: if you're offended by colorful language, this might not be your cosmic cup of fucking tea.</p>
     </div>
 
     <div id="meditationOverlay" class="overlay" style="display: none;">
         <div class="meditation-content">
+            <button class="close-btn">&times;</button>
             <h2>let's get you zen af with a custom, guided meditation</h2>
             <div id="questionContainer"></div>
             <div id="meditationContainer" style="display: none;">
@@ -250,6 +270,7 @@
             window.meditationText = document.getElementById('meditationText');
             window.endMeditationButton = document.getElementById('endMeditation');
             window.loadingElement = document.querySelector('.loading');
+            window.closeButton = document.querySelector('.close-btn');
         }
 
         function setupEventListeners() {
@@ -258,6 +279,9 @@
             }
             if (window.endMeditationButton) {
                 window.endMeditationButton.addEventListener('click', endMeditation);
+            }
+            if (window.closeButton) {
+                window.closeButton.addEventListener('click', closeMeditationOverlay);
             }
             setupCustomCursor();
         }
@@ -400,6 +424,10 @@
             if (socket) {
                 socket.close();
             }
+            closeMeditationOverlay();
+        }
+
+        function closeMeditationOverlay() {
             window.meditationOverlay.style.display = 'none';
             window.meditationText.textContent = '';
             window.questionContainer.style.display = 'block';
