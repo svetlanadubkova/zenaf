@@ -41,7 +41,7 @@
             width: 100%;
             height: 100%;
             z-index: -2;
-            opacity: 0.8; /* Increased opacity to make video more visible */
+            opacity: 0.8;
         }
 
         #video-hero {
@@ -118,7 +118,7 @@
             padding: 1.5rem;
             border-radius: 10px;
             width: 90%;
-            max-width: 400px; /* Reduced max-width */
+            max-width: 400px;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -138,7 +138,7 @@
 
         #visualizer {
             width: 100%;
-            height: 60px; /* Reduced height */
+            height: 60px;
             background-color: rgba(34, 34, 34, 0.6);
             margin-bottom: 15px;
             border-radius: 5px;
@@ -148,6 +148,16 @@
             font-size: 1rem;
             margin-bottom: 15px;
             line-height: 1.4;
+        }
+
+        #transcriptionText {
+            font-size: 0.9rem;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(34, 34, 34, 0.6);
+            border-radius: 5px;
+            max-height: 100px;
+            overflow-y: auto;
         }
 
         #questionContainer {
@@ -245,10 +255,12 @@
             <div id="meditationContainer" style="display: none;">
                 <canvas id="visualizer"></canvas>
                 <div id="meditationText"></div>
+                <div id="transcriptionText"></div>
                 <button id="endMeditation" class="btn">End Meditation</button>
             </div>
             <div class="loading">
-                Preparing your zen<span class="loading-dots"></span>
+                <p id="loadingMessage"></p>
+                <span class="loading-dots"></span>
             </div>
         </div>
     </div>
@@ -268,9 +280,12 @@
             window.questionContainer = document.getElementById('questionContainer');
             window.meditationContainer = document.getElementById('meditationContainer');
             window.meditationText = document.getElementById('meditationText');
+            window.transcriptionText = document.getElementById('transcriptionText');
             window.endMeditationButton = document.getElementById('endMeditation');
             window.loadingElement = document.querySelector('.loading');
+            window.loadingMessage = document.getElementById('loadingMessage');
             window.closeButton = document.querySelector('.close-btn');
+            window.visualizer = document.getElementById('visualizer');
         }
 
         function setupEventListeners() {
@@ -364,46 +379,64 @@
         }
 
         let socket;
+        let audioContext;
+        let analyser;
 
         function startGuidedMeditation() {
-    window.questionContainer.style.display = 'none';
-    window.loadingElement.style.display = 'block';
+            window.questionContainer.style.display = 'none';
+            window.loadingElement.style.display = 'block';
+            cycleLoadingMessages();
 
-    console.log("Connecting to WebSocket server...");
-    socket = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
-    
-    socket.onopen = function(event) {
-        console.log('Connected to server');
-        socket.send(JSON.stringify({
-            type: "message.create",
-            message: {
-                content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(window.userResponses)}`,
-                role: "user"
-            }
-        }));
-    };
-    
-    socket.onmessage = function(event) {
-        const message = JSON.parse(event.data);
-        if (message.type === 'meditation_text') {
-            window.loadingElement.style.display = 'none';
-            window.meditationContainer.style.display = 'block';
-            typeOutText(message.content);
-        } else if (message.type === 'meditation_audio') {
-            playAudio(message.content);
+            console.log("Connecting to WebSocket server...");
+            socket = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
+            
+            socket.onopen = function(event) {
+                console.log('Connected to server');
+                socket.send(JSON.stringify({
+                    type: "message.create",
+                    message: {
+                        content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(window.userResponses)}`,
+                        role: "user"
+                    }
+                }));
+            };
+            
+            socket.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                if (message.type === 'meditation_text') {
+                    window.loadingElement.style.display = 'none';
+                    window.meditationContainer.style.display = 'block';
+                    typeOutText(message.content);
+                } else if (message.type === 'meditation_audio') {
+                    playAudioAndVisualize(message.content);
+                }
+            };
+
+            socket.onclose = function(event) {
+                console.log('Disconnected from server');
+            };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                window.loadingElement.style.display = 'none';
+                window.meditationText.textContent = 'Error connecting to meditation service. Please try again later.';
+            };
         }
-    };
 
-    socket.onclose = function(event) {
-        console.log('Disconnected from server');
-    };
-
-    socket.onerror = function(error) {
-        console.error('WebSocket error:', error);
-        window.loadingElement.style.display = 'none';
-        window.meditationText.textContent = 'Error connecting to meditation service. Please try again later.';
-    };
-}
+        function cycleLoadingMessages() {
+            const messages = [
+                "Preparing your zen...",
+                "give it a sec. chill is coming.",
+                "breathe. loading your peace.",
+                "almost zen time..."
+            ];
+            let index = 0;
+            window.loadingMessage.textContent = messages[index];
+            setInterval(() => {
+                index = (index + 1) % messages.length;
+                window.loadingMessage.textContent = messages[index];
+            }, 3000);
+        }
 
         function typeOutText(text) {
             const words = text.split(' ');
@@ -418,14 +451,90 @@
             }, 200);
         }
 
-        function playAudio(audioData) {
+        function playAudioAndVisualize(audioData) {
             const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+            
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+            }
+
+            const source = audioContext.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            const canvas = window.visualizer;
+            const canvasCtx = canvas.getContext('2d');
+
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                const WIDTH = canvas.width;
+                const HEIGHT = canvas.height;
+
+                requestAnimationFrame(draw);
+
+                analyser.getByteFrequencyData(dataArray);
+
+                canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+                canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+                const barWidth = (WIDTH / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+
+                    canvasCtx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+                    canvasCtx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight);
+
+                    x += barWidth + 1;
+                }
+            }
+
+            draw();
             audio.play();
+
+            // Speech recognition for transcription
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = function(event) {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    window.transcriptionText.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+                };
+
+                recognition.start();
+
+                audio.onended = function() {
+                    recognition.stop();
+                };
+            }
         }
 
         function endMeditation() {
             if (socket) {
                 socket.close();
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+                analyser = null;
             }
             closeMeditationOverlay();
         }
@@ -433,11 +542,15 @@
         function closeMeditationOverlay() {
             window.meditationOverlay.style.display = 'none';
             window.meditationText.textContent = '';
+            window.transcriptionText.textContent = '';
             window.questionContainer.style.display = 'block';
             window.meditationContainer.style.display = 'none';
             window.loadingElement.style.display = 'none';
             window.currentQuestionIndex = 0;
             window.userResponses = {};
+            const canvas = window.visualizer;
+            const canvasCtx = canvas.getContext('2d');
+            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function initThreeJS() {

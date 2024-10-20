@@ -18,14 +18,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionContainer = document.getElementById('questionContainer');
     const meditationContainer = document.getElementById('meditationContainer');
     const meditationText = document.getElementById('meditationText');
+    const transcriptionText = document.getElementById('transcriptionText');
     const meditationOverlay = document.getElementById('meditationOverlay');
     const loadingElement = document.querySelector('.loading');
+    const loadingMessage = document.getElementById('loadingMessage');
     const userNameSpan = document.getElementById('userName');
+    const closeMeditationBtn = document.getElementById('closeMeditationBtn');
+    const endMeditationBtn = document.getElementById('endMeditationBtn');
+
+    const loadingMessages = [
+        "Preparing your zen...",
+        "give it a sec. chill is coming.",
+        "breathe. loading your peace.",
+        "almost zen time..."
+    ];
+
+    let currentLoadingMessageIndex = 0;
+    let loadingInterval;
 
     startButton.addEventListener('click', () => {
         meditationOverlay.style.display = 'flex';
         showQuestion();
     });
+
+    closeMeditationBtn.addEventListener('click', () => {
+        meditationOverlay.style.display = 'none';
+        resetMeditation();
+    });
+
+    endMeditationBtn.addEventListener('click', () => {
+        meditationOverlay.style.display = 'none';
+        resetMeditation();
+    });
+
+    function resetMeditation() {
+        currentQuestionIndex = 0;
+        userResponses = {};
+        questionContainer.style.display = 'block';
+        meditationContainer.style.display = 'none';
+        meditationText.innerHTML = '';
+        transcriptionText.innerHTML = '';
+        loadingElement.style.display = 'none';
+        clearInterval(loadingInterval);
+    }
 
     function showQuestion() {
         if (currentQuestionIndex < questions.length) {
@@ -88,7 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
         questionContainer.style.display = 'none';
         loadingElement.style.display = 'block';
 
-        // Use WSS instead of WS
+        loadingInterval = setInterval(() => {
+            loadingMessage.textContent = loadingMessages[currentLoadingMessageIndex];
+            currentLoadingMessageIndex = (currentLoadingMessageIndex + 1) % loadingMessages.length;
+        }, 3000);
+
         const ws = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
 
         ws.onopen = () => {
@@ -105,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ws.onmessage = (event) => {
             loadingElement.style.display = 'none';
             meditationContainer.style.display = 'block';
+            clearInterval(loadingInterval);
 
             const data = JSON.parse(event.data);
             if (data.type === 'meditation') {
@@ -112,9 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     typeOutText(data.content);
                 }
                 if (data.audio) {
-                    // Handle audio playback
-                    const audio = new Audio(`data:audio/wav;base64,${data.audio.data}`);
-                    audio.play();
+                    playAudioAndVisualize(data.audio);
                 }
             } else if (data.type === 'error') {
                 meditationText.innerHTML += `<p>Error: ${data.message}</p>`;
@@ -125,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('WebSocket error:', error);
             loadingElement.style.display = 'none';
             meditationText.innerHTML = '<p>Error connecting to meditation service. Please try again later.</p>';
+            clearInterval(loadingInterval);
         };
 
         ws.onclose = () => {
@@ -142,6 +181,82 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 clearInterval(intervalId);
             }
-        }, 200); // Adjust the speed as needed
+        }, 200);
+    }
+
+    function playAudioAndVisualize(audioData) {
+        const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(audio);
+        
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+
+        const canvas = document.getElementById('meditationCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function visualize() {
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
+
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            function draw() {
+                requestAnimationFrame(draw);
+
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.fillStyle = 'rgb(0, 0, 0)';
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+                const barWidth = (WIDTH / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+
+                    ctx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+                    ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight);
+
+                    x += barWidth + 1;
+                }
+            }
+
+            draw();
+        }
+
+        visualize();
+        audio.play();
+
+        // Speech recognition for transcription
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    transcriptionText.innerHTML += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            transcriptionText.innerHTML = transcriptionText.innerHTML.trim() + ' ' + interimTranscript;
+        };
+
+        recognition.start();
+
+        audio.onended = () => {
+            recognition.stop();
+        };
     }
 });
