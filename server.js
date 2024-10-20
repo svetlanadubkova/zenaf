@@ -1,5 +1,5 @@
 import express from 'express';
-import WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
@@ -22,7 +22,7 @@ const openai = new OpenAI({
   apiKey: OPENAI_API_KEY
 });
 
-const wss = new WebSocket.Server({ noServer: true });
+const wss = new WebSocketServer({ noServer: true });
 
 const AI_INSTRUCTIONS = `You are an AI-powered meditation guide for the "Zen as Fuck" app. Your primary goal is to provide personalized, guided calming meditations that help users find calm and inner peace in a humorous, irreverent, and no-nonsense way. [... rest of the instructions ...]`;
 
