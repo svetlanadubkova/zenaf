@@ -28,6 +28,7 @@ const AI_INSTRUCTIONS = `You are an AI-powered meditation guide for the "Zen as 
 
 async function generateMeditation(userResponses) {
   try {
+    console.log('Generating meditation for user responses:', userResponses);
     const response = await openai.chat.completions.create({
       model: "gpt-4o-audio-preview",
       modalities: ["text", "audio"],
@@ -43,7 +44,7 @@ async function generateMeditation(userResponses) {
         }
       ]
     });
-
+    console.log('Meditation generated successfully');
     return response.choices[0].message;
   } catch (error) {
     console.error('Error generating meditation:', error);
@@ -66,9 +67,13 @@ function handleWebSocketConnection(ws) {
         content: meditation.content,
         audio: meditation.audio
       }));
+      console.log('Meditation sent to client');
     } catch (error) {
       console.error('Error handling message:', error);
-      ws.close(1011, 'Error processing request');
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Error processing request'
+      }));
     }
   });
 
@@ -93,11 +98,16 @@ server.on('upgrade', (request, socket, head) => {
   });
 });
 
+// Express error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Express error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 // Global error handling
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   // Perform any necessary cleanup here
-  process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -113,3 +123,8 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 });
+
+// Keep the process running
+process.stdin.resume();
+
+console.log('Server setup complete');
