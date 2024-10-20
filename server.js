@@ -1,7 +1,8 @@
-const express = require('express');
-const WebSocket = require('ws');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import express from 'express';
+import WebSocket from 'ws';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import OpenAI from 'openai';
 
 dotenv.config();
 
@@ -10,79 +11,69 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;"
-const OPENAI_WS_URL = 'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
   console.error('OPENAI_API_KEY is not set in environment variables');
   process.exit(1);
 }
 
+const openai = new OpenAI({
+  apiKey: OPENAI_API_KEY
+});
+
 const wss = new WebSocket.Server({ noServer: true });
 
 const AI_INSTRUCTIONS = `You are an AI-powered meditation guide for the "Zen as Fuck" app. Your primary goal is to provide personalized, guided calming meditations that help users find calm and inner peace in a humorous, irreverent, and no-nonsense way. [... rest of the instructions ...]`;
 
+async function generateMeditation(userResponses) {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-audio-preview",
+      modalities: ["text", "audio"],
+      audio: { voice: "alloy", format: "wav" },
+      messages: [
+        {
+          role: "system",
+          content: AI_INSTRUCTIONS
+        },
+        {
+          role: "user",
+          content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(userResponses)}`
+        }
+      ]
+    });
+
+    return response.choices[0].message;
+  } catch (error) {
+    console.error('Error generating meditation:', error);
+    throw error;
+  }
+}
+
 function handleWebSocketConnection(ws) {
   console.log('Client connected');
 
-  let openaiWs = null;
-  let connectionTimeout = null;
-
-  function connectToOpenAI() {
-    openaiWs = new WebSocket(OPENAI_WS_URL, {
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "OpenAI-Beta": "realtime=v1",
-      },
-    });
-
-    openaiWs.on('open', () => {
-      console.log('Connected to OpenAI server');
-      clearTimeout(connectionTimeout);
-      openaiWs.send(JSON.stringify({
-        type: "response.create",
-        response: {
-          modalities: ["text", "speech"],
-          instructions: AI_INSTRUCTIONS
-        }
-      }));
-    });
-
-    openaiWs.on('error', (err) => {
-      console.error('OpenAI WebSocket error:', err);
-      clearTimeout(connectionTimeout);
-      ws.close(1011, 'Error connecting to AI service');
-    });
-
-    openaiWs.on('close', (code, reason) => {
-      console.log(`OpenAI WebSocket closed with code ${code} and reason: ${reason}`);
-      clearTimeout(connectionTimeout);
-    });
-  }
-
-  connectToOpenAI();
-
-  ws.on('message', (message) => {
+  ws.on('message', async (message) => {
     try {
       const parsedMessage = JSON.parse(message.toString());
       console.log('Received from client:', parsedMessage);
-      if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
-        openaiWs.send(message);
-      } else {
-        console.error('OpenAI WebSocket is not open');
-        ws.close(1011, 'AI service unavailable');
-      }
+
+      const meditation = await generateMeditation(parsedMessage.userResponses);
+
+      ws.send(JSON.stringify({
+        type: 'meditation',
+        content: meditation.content,
+        audio: meditation.audio
+      }));
     } catch (error) {
-      console.error('Error parsing client message:', error);
-      ws.close(1007, 'Invalid message format');
+      console.error('Error handling message:', error);
+      ws.close(1011, 'Error processing request');
     }
   });
 
   ws.on('close', (code, reason) => {
     console.log(`Client disconnected with code ${code} and reason: ${reason}`);
-    if (openaiWs) {
-      openaiWs.close();
-    }
   });
 
   ws.on('error', (err) => {
