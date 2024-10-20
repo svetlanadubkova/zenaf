@@ -68,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         questionContainer.style.display = 'none';
         meditationContainer.style.display = 'block';
 
-        const ws = new WebSocket('ws://zenafaiguidedmeditation.onrender.com'); // Replace with your actual backend URL
+        // Use WSS instead of WS
+        const ws = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
 
         ws.onopen = () => {
             console.log('Connected to server');
@@ -83,16 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.type === 'content_block') {
-                if (data.content_block.type === 'text') {
-                    const newParagraph = document.createElement('p');
-                    newParagraph.textContent = data.content_block.text;
-                    meditationText.appendChild(newParagraph);
-                    newParagraph.scrollIntoView({ behavior: 'smooth', block: 'end' });
-                } else if (data.content_block.type === 'speech') {
-                    const utterance = new SpeechSynthesisUtterance(data.content_block.text);
-                    speechSynthesis.speak(utterance);
+            if (data.type === 'meditation') {
+                if (data.content) {
+                    meditationText.innerHTML += `<p>${data.content}</p>`;
                 }
+                if (data.audio) {
+                    // Handle audio playback
+                    const audio = new Audio(`data:audio/wav;base64,${data.audio.data}`);
+                    audio.play();
+                }
+            } else if (data.type === 'error') {
+                meditationText.innerHTML += `<p>Error: ${data.message}</p>`;
             }
         };
 
