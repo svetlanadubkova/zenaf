@@ -15,6 +15,7 @@
             --secondary-color: #a0a0a0;
             --bg-color: #000;
             --text-color: #fff;
+            --progress-color: #ffc0cb; /* Light pink for progress bar */
         }
 
         * {
@@ -271,6 +272,22 @@
             margin-top: 2rem;
         }
 
+        .progress-bar-container {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            border-radius: 2.5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: var(--progress-color);
+            transition: width 0.3s ease;
+        }
+
         @media (max-width: 768px) {
             .meditation-content {
                 width: 95%;
@@ -316,6 +333,9 @@
         <div class="meditation-content">
             <button class="close-btn">&times;</button>
             <h2>let's get you zen af with a custom, guided audio meditation</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="questionProgress"></div>
+            </div>
             <div id="questionContainer"></div>
             <div id="meditationContainer" style="display: none;">
                 <canvas id="visualizer"></canvas>
@@ -351,6 +371,7 @@
             window.loadingMessage = document.getElementById('loadingMessage');
             window.closeButton = document.querySelector('.close-btn');
             window.visualizer = document.getElementById('visualizer');
+            window.progressBar = document.getElementById('questionProgress');
         }
 
         function setupEventListeners() {
@@ -380,7 +401,6 @@
                 { id: 'stress', text: "On a scale of 1-10, how turbulent is your inner sea?", type: 'number', min: 1, max: 10 },
                 { id: 'stressType', text: "What realm of your existence is most unsettled?", type: 'select', options: ['Professional', 'Personal', 'Existential'] },
                 { id: 'situation', text: "Describe the storm within. Be as specific as the universe allows with names, situations etc.", type: 'textarea' },
-             
                 { id: 'tension', text: "Where in your body do you feel the tense weight of existence most?", type: 'text' },
                 { id: 'time', text: "How much of eternity can you dedicate to this journey?", type: 'select', options: ['5 min', '10 min', '20 min'] }
             ];
@@ -402,7 +422,7 @@
                 window.questionContainer.innerHTML = `
                     <h3>${question.text}</h3>
                     ${inputHTML}
-                    <button onclick="submitAnswer()" class="btn">Next</button>
+<button onclick="submitAnswer()" class="btn">Next</button>
                 `;
 
                 const input = document.getElementById(question.id);
@@ -414,6 +434,10 @@
                         }
                     });
                 }
+
+                // Update progress bar
+                const progress = ((window.currentQuestionIndex + 1) / window.questions.length) * 100;
+                window.progressBar.style.width = `${progress}%`;
             } else {
                 startGuidedMeditation();
             }
@@ -505,11 +529,11 @@
             window.loadingElement.style.display = 'none';
             window.meditationContainer.style.display = 'block';
             window.meditationText.innerHTML = `
-    <p>our zen servers are acting up, but don’t stress:</p>
+    <p>our zen servers are acting up, but don't stress:</p>
     <p>try this while we sort it out:</p>
     <ol>
         <li>breathe in for 4 slow-ass seconds.</li>
-        <li>hold it like you’re keeping all the chaos out for 4 seconds.</li>
+        <li>hold it like you're keeping all the chaos out for 4 seconds.</li>
         <li>exhale for 6 seconds and let all the bullshit drift away.</li>
         <li>repeat 5 times, staying locked into your inner calm.</li>
     </ol>
@@ -558,82 +582,93 @@
             }, 200);
         }
 
-        function playAudioAndVisualize(audioData) {
-            const audio = new Audio(`data:audio/wav;base64,${audioData}`);
-            
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-            }
+         function playAudioAndVisualize(audioData) {
+        const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+        
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+        }
 
-            const source = audioContext.createMediaElementSource(audio);
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
 
-            const canvas = window.visualizer;
-            const canvasCtx = canvas.getContext('2d');
+        const canvas = window.visualizer;
+        const canvasCtx = canvas.getContext('2d');
 
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
 
-            function draw() {
-                const WIDTH = canvas.width;
-                const HEIGHT = canvas.height;
+        function draw() {
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
 
-                requestAnimationFrame(draw);
+            requestAnimationFrame(draw);
 
-                analyser.getByteFrequencyData(dataArray);
+            analyser.getByteFrequencyData(dataArray);
 
-                canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-                const barWidth = (WIDTH / bufferLength) * 2.5;
-                let barHeight;
-                let x = 0;
+            const barWidth = (WIDTH / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
 
-                for (let i = 0; i < bufferLength; i++) {
-                    barHeight = dataArray[i] / 2;
+            // Define pastel colors
+            const pastelColors = [
+                'rgba(255, 182, 193, 0.7)', // Light pink
+                'rgba(255, 218, 185, 0.7)', // Peach
+                'rgba(255, 228, 225, 0.7)', // Misty rose
+                'rgba(255, 192, 203, 0.7)', // Pink
+                'rgba(255, 204, 153, 0.7)'  // Light peach
+            ];
 
-                    const hue = (i / bufferLength) * 360;
-                    canvasCtx.fillStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
-                    canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
 
-                    x += barWidth + 1;
-                }
-            }
+                // Use pastel colors
+                const colorIndex = Math.floor((i / bufferLength) * pastelColors.length);
+                canvasCtx.fillStyle = pastelColors[colorIndex];
 
-            draw();
-            audio.play();
+                canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
-            // Speech recognition for transcription
-            if ('webkitSpeechRecognition' in window) {
-                const recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
-
-                recognition.onresult = function(event) {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
-
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        } else {
-                            interimTranscript += event.results[i][0].transcript;
-                        }
-                    }
-
-                    window.transcriptionText.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
-                };
-
-                recognition.start();
-
-                audio.onended = function() {
-                    recognition.stop();
-                };
+                x += barWidth + 1;
             }
         }
+
+        draw();
+        audio.play();
+
+        // Speech recognition for transcription
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                window.transcriptionText.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+            };
+
+            recognition.start();
+
+            audio.onended = function() {
+                recognition.stop();
+            };
+        }
+    }
 
         function endMeditation() {
             if (socket) {
