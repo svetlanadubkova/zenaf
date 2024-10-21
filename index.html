@@ -7,311 +7,304 @@
     <title>zen as fuck | transcendent experience</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap');
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap');
 
-        :root {
-            --primary-color: #f0f0f0;
-            --secondary-color: #a0a0a0;
-            --bg-color: #000;
-            --text-color: #fff;
-            --progress-color: #ffc0cb; /* Light pink for progress bar */
-        }
+    :root {
+        --primary-color: #f0f0f0;
+        --secondary-color: #a0a0a0;
+        --bg-color: #000;
+        --text-color: #fff;
+        --progress-color: #ffc0cb; /* Light pink for progress bar */
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        body,
-        html {
-            font-family: 'Cormorant Garamond', serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow: hidden;
-            cursor: none;
-        }
+    body,
+    html {
+        font-family: 'Cormorant Garamond', serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        overflow: hidden;
+        cursor: none;
+    }
 
-        #video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            opacity: 0.4;
-        }
+    #video-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        opacity: 0.4;
+    }
 
-        #video-hero {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    #video-hero {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-        #scene-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.6;
-        }
+    #scene-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.6;
+    }
 
-        .content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 1;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-            width: 80%;
-            max-width: 800px;
-        }
+    .content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+        width: 80%;
+        max-width: 800px;
+    }
 
-        .title-container {
-            font-size: clamp(3rem, 10vw, 6rem);
-            line-height: 1;
-            margin-bottom: 2rem;
-            text-transform: lowercase;
-            letter-spacing: 0.1em;
-        }
+    .title-container {
+        font-size: clamp(3rem, 10vw, 6rem);
+        line-height: 1;
+        margin-bottom: 2rem;
+        text-transform: lowercase;
+        letter-spacing: 0.1em;
+    }
 
-        .title-word {
-            display: inline-block;
-            margin-right: 0.5rem;
-            font-weight: 300;
-        }
+    .title-word {
+        display: inline-block;
+        margin-right: 0.5rem;
+        font-weight: 300;
+    }
 
-        .title-letter {
-            display: inline-block;
-            color: var(--primary-color);
-            opacity: 0.8;
-            transition: opacity 0.5s ease;
-        }
+    .title-letter {
+        display: inline-block;
+        color: var(--primary-color);
+        opacity: 0.8;
+        transition: opacity 0.5s ease;
+    }
 
-        .title-letter.fade {
-            opacity: 0.4;
-        }
+    .title-letter.fade {
+        opacity: 0.4;
+    }
 
-        h2 {
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
-            margin-bottom: 1rem;
-            text-transform: lowercase;
-            font-weight: 300;
-        }
+    h2 {
+        font-size: clamp(1.5rem, 3vw, 2.5rem);
+        margin-bottom: 1rem;
+        text-transform: lowercase;
+        font-weight: 300;
+    }
 
-        p {
-            font-size: clamp(1rem, 2vw, 1.5rem);
-            margin-bottom: 1rem;
-            font-weight: 300;
-        }
+    p {
+        font-size: clamp(1rem, 2vw, 1.5rem);
+        margin-bottom: 1rem;
+        font-weight: 300;
+    }
 
-        .btn {
-            display: inline-block;
-            padding: 0.8rem 2rem;
-            background-color: transparent;
-            color: var(--text-color);
-            border: 1px solid var(--text-color);
-            text-decoration: none;
-            font-weight: 400;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin-top: 1rem;
-            text-transform: lowercase;
-            letter-spacing: 0.1em;
-        }
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background-color: transparent;
+        color: var(--text-color);
+        border: 1px solid var(--text-color);
+        text-decoration: none;
+        font-weight: 400;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin-top: 1rem;
+        text-transform: lowercase;
+        letter-spacing: 0.1em;
+    }
 
-        .btn:hover {
-            background-color: var(--text-color);
-            color: var(--bg-color);
-        }
+    .btn:hover {
+        background-color: var(--text-color);
+        color: var(--bg-color);
+    }
 
-         .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.3); /* Reduced opacity */
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(3px); /* Slight blur for depth */
-        }
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(8px);
+    }
 
+    .meditation-content {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+        padding: 2rem;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .meditation-content::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 80%);
+        transform: rotate(45deg);
+        pointer-events: none;
+    }
+
+    .meditation-content:hover {
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+    }
+
+    .meditation-content h2,
+    .meditation-content p,
+    .meditation-content input,
+    .meditation-content select,
+    .meditation-content textarea,
+    .meditation-content button {
+        color: #ffffff;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    #visualizer {
+        width: 100%;
+        height: 60px;
+        background-color: rgba(255, 255, 255, 0.1);
+        margin-bottom: 15px;
+        border-radius: 10px;
+    }
+
+    #meditationText {
+        font-size: 1rem;
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    #transcriptionText {
+        font-size: 0.9rem;
+        margin-top: 15px;
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 5px;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+
+    #questionContainer {
+        margin-bottom: 15px;
+    }
+
+    #questionContainer input,
+    #questionContainer select,
+    #questionContainer textarea {
+        width: 100%;
+        padding: 8px;
+        margin: 8px 0;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #ffffff;
+        font-family: 'Cormorant Garamond', serif;
+        transition: all 0.3s ease;
+        border-radius: 5px;
+    }
+
+    #questionContainer input:focus,
+    #questionContainer select:focus,
+    #questionContainer textarea:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .custom-cursor {
+        width: 20px;
+        height: 20px;
+        border: 1px solid var(--text-color);
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        mix-blend-mode: difference;
+        transition: transform 0.1s ease;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+
+    .loading-dots::after {
+        content: '';
+        animation: dots 1.5s steps(5, end) infinite;
+    }
+
+    @keyframes dots {
+        0%, 20% { content: '.'; }
+        40% { content: '..'; }
+        60%, 100% { content: '...'; }
+    }
+
+    .disclaimer {
+        font-size: 0.8rem;
+        opacity: 0.7;
+        margin-top: 2rem;
+    }
+
+    .progress-bar-container {
+        width: 100%;
+        height: 5px;
+        background-color: rgba(255, 255, 255, 0.2);
+        margin-bottom: 20px;
+        border-radius: 2.5px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0;
+        background-color: var(--progress-color);
+        transition: width 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
         .meditation-content {
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)); /* Darker, semi-transparent background */
-            padding: 2rem;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            width: 95%;
+            padding: 1rem;
         }
-
-        .meditation-content::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 80%);
-            transform: rotate(45deg);
-            pointer-events: none;
-        }
-
-        .meditation-content:hover {
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Adjust text color for better visibility */
-        .meditation-content h2,
-        .meditation-content p,
-        .meditation-content input,
-        .meditation-content select,
-        .meditation-content textarea,
-        .meditation-content button {
-            color: #ffffff;
-        }
-
-        #questionContainer input,
-        #questionContainer select,
-        #questionContainer textarea {
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 10;
-        }
-
-        #visualizer {
-            width: 100%;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.05);
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
-
-        #meditationText {
-            font-size: 1rem;
-            margin-bottom: 15px;
-            line-height: 1.6;
-        }
-
-        #transcriptionText {
-            font-size: 0.9rem;
-            margin-top: 15px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-            max-height: 100px;
-            overflow-y: auto;
-        }
-
-        #questionContainer {
-            margin-bottom: 15px;
-        }
-
-        #questionContainer input,
-        #questionContainer select,
-        #questionContainer textarea {
-            width: 100%;
-            padding: 8px;
-            margin: 8px 0;
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            font-family: 'Cormorant Garamond', serif;
-            transition: all 0.3s ease;
-            border-radius: 5px;
-        }
-
-        #questionContainer input:focus,
-        #questionContainer select:focus,
-        #questionContainer textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-        }
-
-        .custom-cursor {
-            width: 20px;
-            height: 20px;
-            border: 1px solid var(--text-color);
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            mix-blend-mode: difference;
-            transition: transform 0.1s ease;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-
-        .loading-dots::after {
-            content: '';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-
-        .disclaimer {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-top: 2rem;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
-            border-radius: 2.5px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0;
-            background-color: var(--progress-color);
-            transition: width 0.3s ease;
-        }
-
-        @media (max-width: 768px) {
-            .meditation-content {
-                width: 95%;
-                padding: 1rem;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 
 <body>
