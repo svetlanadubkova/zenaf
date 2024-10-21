@@ -131,27 +131,27 @@
             color: var(--bg-color);
         }
 
-        .overlay {
+         .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.3); /* Reduced opacity */
             z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(3px); /* Slight blur for depth */
         }
 
         .meditation-content {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)); /* Darker, semi-transparent background */
             padding: 2rem;
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
@@ -165,13 +165,30 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 80%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 80%);
             transform: rotate(45deg);
             pointer-events: none;
         }
 
         .meditation-content:hover {
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Adjust text color for better visibility */
+        .meditation-content h2,
+        .meditation-content p,
+        .meditation-content input,
+        .meditation-content select,
+        .meditation-content textarea,
+        .meditation-content button {
+            color: #ffffff;
+        }
+
+        #questionContainer input,
+        #questionContainer select,
+        #questionContainer textarea {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .close-btn {
