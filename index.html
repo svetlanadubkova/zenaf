@@ -4,10 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>zen as fuck | guided ai meditation</title>
+    <title>zen as fuck | transcendent experience</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #f0f0f0;
+            --secondary-color: #a0a0a0;
+            --bg-color: #000;
+            --text-color: #fff;
+        }
 
         * {
             margin: 0;
@@ -17,9 +25,9 @@
 
         body,
         html {
-            font-family: 'Space Mono', monospace;
-            background-color: #000;
-            color: #fff;
+            font-family: 'Cormorant Garamond', serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             overflow: hidden;
             cursor: none;
         }
@@ -30,14 +38,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            opacity: 0.8;
+            z-index: -2;
+            opacity: 0.4;
         }
 
         #video-hero {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        #scene-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
         }
 
         .content {
@@ -53,40 +71,63 @@
             max-width: 800px;
         }
 
-        h1 {
-            font-size: clamp(3rem, 10vw, 8rem);
+        .title-container {
+            font-size: clamp(3rem, 10vw, 6rem);
             line-height: 1;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
             text-transform: lowercase;
+            letter-spacing: 0.1em;
+        }
+
+        .title-word {
+            display: inline-block;
+            margin-right: 0.5rem;
+            font-weight: 300;
+        }
+
+        .title-letter {
+            display: inline-block;
+            color: var(--primary-color);
+            opacity: 0.8;
+            transition: opacity 0.5s ease;
+        }
+
+        .title-letter.fade {
+            opacity: 0.4;
         }
 
         h2 {
             font-size: clamp(1.5rem, 3vw, 2.5rem);
             margin-bottom: 1rem;
+            text-transform: lowercase;
+            font-weight: 300;
         }
 
         p {
             font-size: clamp(1rem, 2vw, 1.5rem);
             margin-bottom: 1rem;
+            font-weight: 300;
         }
 
         .btn {
             display: inline-block;
-            padding: 1rem 2rem;
+            padding: 0.8rem 2rem;
             background-color: transparent;
-            color: #fff;
-            border: 2px solid #fff;
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
             text-decoration: none;
-            font-weight: 700;
+            font-weight: 400;
             font-size: 1rem;
             transition: all 0.3s ease;
             cursor: pointer;
             margin-top: 1rem;
+            text-transform: lowercase;
+            letter-spacing: 0.1em;
         }
 
         .btn:hover {
-            background-color: #fff;
-            color: #000;
+            background-color: var(--text-color);
+            color: var(--bg-color);
         }
 
         .overlay {
@@ -95,24 +136,41 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.8);
             z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(5px);
         }
 
         .meditation-content {
-            background-color: rgba(17, 17, 17, 0.6);
-            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+            padding: 2rem;
             border-radius: 10px;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .meditation-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 80%);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+
+        .meditation-content:hover {
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
         }
 
         .close-btn {
@@ -121,15 +179,16 @@
             right: 10px;
             background: none;
             border: none;
-            color: #fff;
+            color: var(--text-color);
             font-size: 1.5rem;
             cursor: pointer;
+            z-index: 10;
         }
 
         #visualizer {
             width: 100%;
             height: 60px;
-            background-color: rgba(34, 34, 34, 0.6);
+            background-color: rgba(255, 255, 255, 0.05);
             margin-bottom: 15px;
             border-radius: 5px;
         }
@@ -137,14 +196,14 @@
         #meditationText {
             font-size: 1rem;
             margin-bottom: 15px;
-            line-height: 1.4;
+            line-height: 1.6;
         }
 
         #transcriptionText {
             font-size: 0.9rem;
             margin-top: 15px;
             padding: 10px;
-            background-color: rgba(34, 34, 34, 0.6);
+            background-color: rgba(255, 255, 255, 0.05);
             border-radius: 5px;
             max-height: 100px;
             overflow-y: auto;
@@ -160,10 +219,10 @@
             width: 100%;
             padding: 8px;
             margin: 8px 0;
-            background-color: rgba(34, 34, 34, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #fff;
-            font-family: 'Space Mono', monospace;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-family: 'Cormorant Garamond', serif;
             transition: all 0.3s ease;
             border-radius: 5px;
         }
@@ -172,14 +231,14 @@
         #questionContainer select:focus,
         #questionContainer textarea:focus {
             outline: none;
-            border-color: #ffc5e1;
-            box-shadow: 0 0 10px rgba(255, 179, 231, 0.929);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
 
         .custom-cursor {
             width: 20px;
             height: 20px;
-            border: 2px solid #fff;
+            border: 1px solid var(--text-color);
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
@@ -227,10 +286,27 @@
             <source src="https://storage.googleapis.com/trylame/forbg.jpg%20(1)%20-%20Frame%20Interpolation%20(2)_rhea1.mp4" type="video/mp4">
         </video>
     </div>
+    <div id="scene-container"></div>
     <div class="custom-cursor"></div>
 
     <div id="hero" class="content">
-        <h1>zen as fuck</h1>
+        <div class="title-container">
+            <div class="title-word">
+                <span class="title-letter">z</span>
+                <span class="title-letter">e</span>
+                <span class="title-letter">n</span>
+            </div>
+            <div class="title-word">
+                <span class="title-letter">a</span>
+                <span class="title-letter">s</span>
+            </div>
+            <div class="title-word">
+                <span class="title-letter">f</span>
+                <span class="title-letter">u</span>
+                <span class="title-letter fade">c</span>
+                <span class="title-letter fade">k</span>
+            </div>
+        </div>
         <p>mindfulness for the modern mess</p>
         <a href="#" class="btn" id="startMeditationBtn">get zen now</a>
         <p class="disclaimer">disclaimer: if you're offended by colorful language, this might not be your cosmic cup of fucking tea.</p>
@@ -239,7 +315,7 @@
     <div id="meditationOverlay" class="overlay" style="display: none;">
         <div class="meditation-content">
             <button class="close-btn">&times;</button>
-            <h2>let's get you zen af with a custom, guided meditation</h2>
+            <h2>let's get you zen af with a custom, guided audio meditation</h2>
             <div id="questionContainer"></div>
             <div id="meditationContainer" style="display: none;">
                 <canvas id="visualizer"></canvas>
@@ -260,6 +336,7 @@
             initializeDOMElements();
             setupEventListeners();
             initializeQuestions();
+            initThreeJSScene();
         });
 
         function initializeDOMElements() {
@@ -299,13 +376,13 @@
 
         function initializeQuestions() {
             window.questions = [
-                { id: 'name', text: "What's your name?", type: 'text' },
-                { id: 'stress', text: "On a scale of 1-10, how overwhelmed are you right now?", type: 'number', min: 1, max: 10 },
-                { id: 'stressType', text: "Is this stress related to work, relationships, or something else?", type: 'select', options: ['Work', 'Relationships', 'Other'] },
-                { id: 'situation', text: "What are you currently stressed about? Describe the situation in full and include names and be as specific as possible.", type: 'textarea' },
-                { id: 'physical', text: "How are you feeling physically right now?", type: 'text' },
-                { id: 'tension', text: "Where do you feel the most tension in your body?", type: 'text' },
-                { id: 'time', text: "How much time do you have to calm the fuck down right now?", type: 'select', options: ['5 min', '10 min', '20 min'] }
+                { id: 'name', text: "What shall we call you, seeker?", type: 'text' },
+                { id: 'stress', text: "On a scale of 1-10, how turbulent is your inner sea?", type: 'number', min: 1, max: 10 },
+                { id: 'stressType', text: "What realm of your existence is most unsettled?", type: 'select', options: ['Professional', 'Personal', 'Existential'] },
+                { id: 'situation', text: "Describe the storm within. Be as specific as the universe allows with names, situations etc.", type: 'textarea' },
+             
+                { id: 'tension', text: "Where in your body do you feel the tense weight of existence most?", type: 'text' },
+                { id: 'time', text: "How much of eternity can you dedicate to this journey?", type: 'select', options: ['5 min', '10 min', '20 min'] }
             ];
             window.currentQuestionIndex = 0;
             window.userResponses = {};
@@ -428,15 +505,16 @@
             window.loadingElement.style.display = 'none';
             window.meditationContainer.style.display = 'block';
             window.meditationText.innerHTML = `
-                <p>We're having trouble connecting to our zen servers right now. But don't let that stress you out!</p>
-                <p>Here's a quick meditation you can try:</p>
-                <ol>
-                    <li>Take a deep breath in for 4 seconds.</li>
-                    <li>Hold it for 4 seconds.</li>
-                    <li>Exhale slowly for 6 seconds.</li>
-                    <li>Repeat this 5 times, focusing on your breath.</li>
-                </ol>
-                <p>Remember, you're doing great just by taking a moment for yourself.</p>
+    <p>our zen servers are acting up, but don’t stress:</p>
+    <p>try this while we sort it out:</p>
+    <ol>
+        <li>breathe in for 4 slow-ass seconds.</li>
+        <li>hold it like you’re keeping all the chaos out for 4 seconds.</li>
+        <li>exhale for 6 seconds and let all the bullshit drift away.</li>
+        <li>repeat 5 times, staying locked into your inner calm.</li>
+    </ol>
+    <p>you got this. repeat after me: namaste the fuck away from my zen.</p>
+
                 <button onclick="retryConnection()" class="btn">Try Again</button>
             `;
         }
@@ -450,10 +528,14 @@
 
         function cycleLoadingMessages() {
             const messages = [
-                "Preparing your zen...",
+                "preparing your zen...",
                 "give it a sec. chill is coming.",
                 "breathe. loading your peace.",
-                "almost zen time..."
+                "aligning quantum frequencies...",
+                "calibrating consciousness wavelengths...",
+                "synchronizing with the cosmic rhythm...",
+                "almost zen time...",
+                "preparing for neural reconfiguration..."
             ];
             let index = 0;
             window.loadingMessage.textContent = messages[index];
@@ -503,7 +585,7 @@
 
                 analyser.getByteFrequencyData(dataArray);
 
-                canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+                canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                 canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
                 const barWidth = (WIDTH / bufferLength) * 2.5;
@@ -513,8 +595,9 @@
                 for (let i = 0; i < bufferLength; i++) {
                     barHeight = dataArray[i] / 2;
 
-                    canvasCtx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
-                    canvasCtx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight);
+                    const hue = (i / bufferLength) * 360;
+                    canvasCtx.fillStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
+                    canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
                     x += barWidth + 1;
                 }
@@ -576,6 +659,63 @@
             const canvas = window.visualizer;
             const canvasCtx = canvas.getContext('2d');
             canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function initThreeJSScene() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('scene-container').appendChild(renderer.domElement);
+
+            const geometry = new THREE.IcosahedronGeometry(1, 1);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.1
+            });
+            const icosahedron = new THREE.Mesh(geometry, material);
+            scene.add(icosahedron);
+
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 5000;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 5;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.005,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.5
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            camera.position.z = 3;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                icosahedron.rotation.x += 0.0005;
+                icosahedron.rotation.y += 0.0005;
+                particlesMesh.rotation.y += 0.0002;
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            window.addEventListener('resize', onWindowResize, false);
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
         }
 
         // Make submitAnswer global so it can be called from HTML
