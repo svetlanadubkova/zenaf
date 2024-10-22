@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentLoadingMessageIndex = (currentLoadingMessageIndex + 1) % loadingMessages.length;
         }, 3000);
 
-        const ws = new WebSocket('wss://humezenaf-svetlana-dubkovas-projects.vercel.app');
+        const ws = new WebSocket('wss://humezenaf.vercel.app/api/websocket');
 
         ws.onopen = () => {
             console.log('Connected to server');
