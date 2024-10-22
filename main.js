@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentLoadingMessageIndex = (currentLoadingMessageIndex + 1) % loadingMessages.length;
         }, 3000);
 
-        const ws = new WebSocket('wss://humezenaf-git-main-svetlana-dubkovas-projects.vercel.app/api/websocket');
+        const ws = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
 
         ws.onopen = () => {
             console.log('Connected to server');

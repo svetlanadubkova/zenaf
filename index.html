@@ -492,58 +492,49 @@
         }
 
         function connectWebSocket() {
-    console.log("Connecting to WebSocket server...");
-    socket = new WebSocket('wss://humezenaf.vercel.app/api/websocket');
-    
-    socket.onopen = function(event) {
-        console.log('Connected to server');
-        reconnectAttempts = 0;
-        socket.send(JSON.stringify({
-            type: "message.create",
-            message: {
-                content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(window.userResponses)}`,
-                role: "user"
-            }
-        }));
-    };
-    
-    socket.onmessage = async function(event) {
-        try {
-            const message = JSON.parse(event.data);
-            console.log('Received message:', message);
+            console.log("Connecting to WebSocket server...");
+            socket = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
             
-            if (message.type === 'auth') {
-                console.log('Authenticated with token');
-            } else if (message.type === 'meditation_text') {
-                window.loadingElement.style.display = 'none';
-                window.meditationContainer.style.display = 'block';
-                typeOutText(message.content);
-            } else if (message.type === 'meditation_audio') {
-                playAudioAndVisualize(message.content);
-            } else if (message.type === 'error') {
-                console.error('Server error:', message.content);
-                handleConnectionFailure();
-            }
-        } catch (error) {
-            console.error('Error handling message:', error);
+            socket.onopen = function(event) {
+                console.log('Connected to server');
+                reconnectAttempts = 0;
+                socket.send(JSON.stringify({
+                    type: "message.create",
+                    message: {
+                        content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(window.userResponses)}`,
+                        role: "user"
+                    }
+                }));
+            };
+            
+            socket.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                if (message.type === 'meditation_text') {
+                    window.loadingElement.style.display = 'none';
+                    window.meditationContainer.style.display = 'block';
+                    typeOutText(message.content);
+                } else if (message.type === 'meditation_audio') {
+                    playAudioAndVisualize(message.content);
+                }
+            };
+
+            socket.onclose = function(event) {
+                console.log('Disconnected from server');
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    console.log(`Attempting to reconnect... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
+                    reconnectAttempts++;
+                    setTimeout(connectWebSocket, 3000); // Wait 3 seconds before trying to reconnect
+                } else {
+                    handleConnectionFailure();
+                }
+            };
+            
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                // The onclose handler will be called after this, so we'll handle reconnection there
+            };
         }
-    };
-    
-    socket.onerror = function(error) {
-        console.error('WebSocket error:', error);
-    };
-    
-    socket.onclose = function(event) {
-        console.log('Disconnected from server');
-        if (reconnectAttempts < maxReconnectAttempts) {
-            console.log(`Attempting to reconnect... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
-            reconnectAttempts++;
-            setTimeout(connectWebSocket, 3000);
-        } else {
-            handleConnectionFailure();
-        }
-    };
-}
+
         function handleConnectionFailure() {
             window.loadingElement.style.display = 'none';
             window.meditationContainer.style.display = 'block';
