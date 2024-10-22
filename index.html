@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>zen as fuck | transcendent experience</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script type="module" src="https://cdn.skypack.dev/@humeai/voice-react"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;700&display=swap');
 
@@ -361,45 +360,7 @@
         </div>
     </div>
 
-    <script type="module">
-        // Import Hume Voice SDK
-        import { VoiceProvider } from '@humeai/voice-react';
-
-        // Declare variables and functions that need to be globally accessible
-        window.startMeditation = null;
-        window.submitAnswer = null;
-        window.endMeditation = null;
-        window.retryConnection = null;
-
-        // Module-level variables
-        let voiceProvider;
-        let socket;
-        let audioContext;
-        let analyser;
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 3;
-
-        // Initialize all functionality when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('DOM fully loaded and parsed');
-            initializeEverything();
-        });
-
-        function initializeEverything() {
-            initializeDOMElements();
-            setupEventListeners();
-            initializeQuestions();
-            initThreeJSScene();
-            setupGlobalFunctions();
-        }
-
-        let voiceProvider;
-        let socket;
-        let audioContext;
-        let analyser;
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 3;
-
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
             console.log('DOM fully loaded and parsed');
             initializeDOMElements();
@@ -471,7 +432,7 @@
                 window.questionContainer.innerHTML = `
                     <h3>${question.text}</h3>
                     ${inputHTML}
-                    <button onclick="submitAnswer()" class="btn">Next</button>
+<button onclick="submitAnswer()" class="btn">Next</button>
                 `;
 
                 const input = document.getElementById(question.id);
@@ -484,6 +445,7 @@
                     });
                 }
 
+                // Update progress bar
                 const progress = ((window.currentQuestionIndex + 1) / window.questions.length) * 100;
                 window.progressBar.style.width = `${progress}%`;
             } else {
@@ -515,16 +477,23 @@
             showNextQuestion();
         }
 
+        let socket;
+        let audioContext;
+        let analyser;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
+
         function startGuidedMeditation() {
             window.questionContainer.style.display = 'none';
             window.loadingElement.style.display = 'block';
             cycleLoadingMessages();
+
             connectWebSocket();
         }
 
-        async function connectWebSocket() {
+        function connectWebSocket() {
             console.log("Connecting to WebSocket server...");
-            socket = new WebSocket('wss://humezenaf-svetlana-dubkovas-projects.vercel.app/api/websocket');
+            socket = new WebSocket('wss://zenafaiguidedmeditation.onrender.com');
             
             socket.onopen = function(event) {
                 console.log('Connected to server');
@@ -538,35 +507,13 @@
                 }));
             };
             
-            socket.onmessage = async function(event) {
+            socket.onmessage = function(event) {
                 const message = JSON.parse(event.data);
-                
-                if (message.type === 'auth') {
-                    try {
-                        voiceProvider = new VoiceProvider({
-                            auth: { type: 'accessToken', value: message.content.accessToken }
-                        });
-                        await voiceProvider.connect();
-                        console.log('Voice initialized');
-                    } catch (error) {
-                        console.error('Voice initialization failed:', error);
-                    }
-                } else if (message.type === 'meditation_text') {
+                if (message.type === 'meditation_text') {
                     window.loadingElement.style.display = 'none';
                     window.meditationContainer.style.display = 'block';
                     typeOutText(message.content);
-                    
-                    if (voiceProvider) {
-                        try {
-                            await voiceProvider.speak(message.content);
-                        } catch (error) {
-                            console.error('Speech synthesis failed:', error);
-                            if (message.type === 'meditation_audio') {
-                                playAudioAndVisualize(message.content);
-                            }
-                        }
-                    }
-                } else if (message.type === 'meditation_audio' && !voiceProvider) {
+                } else if (message.type === 'meditation_audio') {
                     playAudioAndVisualize(message.content);
                 }
             };
@@ -576,7 +523,7 @@
                 if (reconnectAttempts < maxReconnectAttempts) {
                     console.log(`Attempting to reconnect... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
                     reconnectAttempts++;
-                    setTimeout(connectWebSocket, 3000);
+                    setTimeout(connectWebSocket, 3000); // Wait 3 seconds before trying to reconnect
                 } else {
                     handleConnectionFailure();
                 }
@@ -584,6 +531,7 @@
             
             socket.onerror = function(error) {
                 console.error('WebSocket error:', error);
+                // The onclose handler will be called after this, so we'll handle reconnection there
             };
         }
 
@@ -591,15 +539,16 @@
             window.loadingElement.style.display = 'none';
             window.meditationContainer.style.display = 'block';
             window.meditationText.innerHTML = `
-                <p>our zen servers are acting up, but don't stress:</p>
-                <p>try this while we sort it out:</p>
-                <ol>
-                    <li>breathe in for 4 slow-ass seconds.</li>
-                    <li>hold it like you're keeping all the chaos out for 4 seconds.</li>
-                    <li>exhale for 6 seconds and let all the bullshit drift away.</li>
-                    <li>repeat 5 times, staying locked into your inner calm.</li>
-                </ol>
-                <p>you got this. repeat after me: namaste the fuck away from my zen.</p>
+    <p>our zen servers are acting up, but don't stress:</p>
+    <p>try this while we sort it out:</p>
+    <ol>
+        <li>breathe in for 4 slow-ass seconds.</li>
+        <li>hold it like you're keeping all the chaos out for 4 seconds.</li>
+        <li>exhale for 6 seconds and let all the bullshit drift away.</li>
+        <li>repeat 5 times, staying locked into your inner calm.</li>
+    </ol>
+    <p>you got this. repeat after me: namaste the fuck away from my zen.</p>
+
                 <button onclick="retryConnection()" class="btn">Try Again</button>
             `;
         }
@@ -643,92 +592,95 @@
             }, 200);
         }
 
-        function playAudioAndVisualize(audioData) {
-            const audio = new Audio(`data:audio/wav;base64,${audioData}`);
-            
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-            }
+         function playAudioAndVisualize(audioData) {
+        const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+        
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+        }
 
-            const source = audioContext.createMediaElementSource(audio);
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
 
-            const canvas = window.visualizer;
-            const canvasCtx = canvas.getContext('2d');
+        const canvas = window.visualizer;
+        const canvasCtx = canvas.getContext('2d');
 
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
 
-            function draw() {
-                const WIDTH = canvas.width;
-                const HEIGHT = canvas.height;
+        function draw() {
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
 
-                requestAnimationFrame(draw);
+            requestAnimationFrame(draw);
 
-                analyser.getByteFrequencyData(dataArray);
+            analyser.getByteFrequencyData(dataArray);
 
-                canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
 
-                const barWidth = (WIDTH / bufferLength) * 2.5;
-                let barHeight;
-                let x = 0;
+            const barWidth = (WIDTH / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
 
-                const pastelColors = [
-                    'rgba(255, 182, 193, 0.7)', // Light pink
-                    'rgba(255, 218, 185, 0.7)', // Peach
-                    'rgba(255, 228, 225, 0.7)', // Misty rose
-                    'rgba(255, 192, 203, 0.7)', // Pink
-                    'rgba(255, 204, 153, 0.7)'  // Light peach
-                ];
+            // Define pastel colors
+            const pastelColors = [
+                'rgba(255, 182, 193, 0.7)', // Light pink
+                'rgba(255, 218, 185, 0.7)', // Peach
+                'rgba(255, 228, 225, 0.7)', // Misty rose
+                'rgba(255, 192, 203, 0.7)', // Pink
+                'rgba(255, 204, 153, 0.7)'  // Light peach
+            ];
 
-                for (let i = 0; i < bufferLength; i++) {
-                    barHeight = dataArray[i] / 2;
-                    const colorIndex = Math.floor((i / bufferLength) * pastelColors.length);
-                    canvasCtx.fillStyle = pastelColors[colorIndex];
-                    canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
-                    x += barWidth + 1;
-                }
-            }
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
 
-            draw();
-            audio.play();
-            // Speech recognition for transcription
-            if ('webkitSpeechRecognition' in window) {
-                const recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = true;
+                // Use pastel colors
+                const colorIndex = Math.floor((i / bufferLength) * pastelColors.length);
+                canvasCtx.fillStyle = pastelColors[colorIndex];
 
-                recognition.onresult = function(event) {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
+                canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
 
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        } else {
-                            interimTranscript += event.results[i][0].transcript;
-                        }
-                    }
-
-                    window.transcriptionText.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
-                };
-
-                recognition.start();
-
-                audio.onended = function() {
-                    recognition.stop();
-                };
+                x += barWidth + 1;
             }
         }
 
+        draw();
+        audio.play();
+
+        // Speech recognition for transcription
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                window.transcriptionText.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+            };
+
+            recognition.start();
+
+            audio.onended = function() {
+                recognition.stop();
+            };
+        }
+    }
+
         function endMeditation() {
-            if (voiceProvider) {
-                voiceProvider.disconnect();
-            }
             if (socket) {
                 socket.close();
             }
@@ -811,11 +763,8 @@
             }
         }
 
-        // Make necessary functions global
+        // Make submitAnswer global so it can be called from HTML
         window.submitAnswer = submitAnswer;
-        window.startMeditation = startMeditation;
-        window.endMeditation = endMeditation;
-        window.retryConnection = retryConnection;
     </script>
 </body>
 </html>
