@@ -2,7 +2,7 @@ import express from 'express';
 import { WebSocketServer } from 'ws';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import { fetchAccessToken } from 'hume';
 
 dotenv.config();
 
@@ -11,16 +11,14 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const HUME_API_KEY = process.env.HUME_API_KEY;
+const HUME_CONFIG_ID = process.env.NEXT_PUBLIC_HUME_CONFIG_ID;
+const HUME_SECRET_KEY = process.env.HUME_SECRET_KEY;
 
-if (!OPENAI_API_KEY) {
-  console.error('OPENAI_API_KEY is not set in environment variables');
+if (!HUME_API_KEY || !HUME_CONFIG_ID || !HUME_SECRET_KEY) {
+  console.error('Missing required Hume credentials in environment variables');
   process.exit(1);
 }
-
-const openai = new OpenAI({
-  apiKey: OPENAI_API_KEY
-});
 
 const wss = new WebSocketServer({ noServer: true });
 
@@ -95,27 +93,47 @@ Remember, you're here to help users relax and find inner peace through humor and
 async function generateMeditation(userResponses) {
   try {
     console.log('Generating meditation for:', userResponses);
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-audio-preview",
-      modalities: ["text", "audio"],
-      audio: { voice: "alloy", format: "wav" },
-      messages: [
-        {
-          role: "system",
-          content: AI_INSTRUCTIONS
-        },
-        {
-          role: "user",
-          content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(userResponses)}`
-        }
-      ]
+    
+    // First get the access token
+    const accessToken = await fetchAccessToken({
+      apiKey: HUME_API_KEY,
+      secretKey: HUME_SECRET_KEY,
     });
 
-    console.log('OpenAI response received');
+    if (!accessToken) {
+      throw new Error('Failed to get access token from Hume');
+    }
+
+    // Now use the access token to create a meditation
+    const response = await fetch('https://api.hume.ai/v0/batch/jobs', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        configs: [{
+          id: HUME_CONFIG_ID,
+          text: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(userResponses)}`,
+          models: {
+            text: {
+              enableProsody: true,
+              enableSpeech: true
+            }
+          }
+        }]
+      })
+    });
+
+    const result = await response.json();
+    
+    if (!result.text || !result.speech) {
+      throw new Error('Invalid response from Hume API');
+    }
 
     return {
-      text: response.choices[0].message.content,
-      audio: response.choices[0].message.audio.data
+      text: result.text,
+      audio: result.speech.audio
     };
   } catch (error) {
     console.error('Error generating meditation:', error);
@@ -133,7 +151,6 @@ function handleWebSocketConnection(ws) {
 
       let userResponses;
       if (parsedMessage.type === 'message.create') {
-        // Extract user responses from the message content
         const contentString = parsedMessage.message.content;
         const match = contentString.match(/\{.*\}/);
         if (match) {
@@ -147,10 +164,19 @@ function handleWebSocketConnection(ws) {
         throw new Error('Unknown message type');
       }
 
-      console.log('Extracted user responses:', userResponses);
+      // First send the authentication token
+      const accessToken = await fetchAccessToken({
+        apiKey: HUME_API_KEY,
+        secretKey: HUME_SECRET_KEY,
+      });
 
+      ws.send(JSON.stringify({
+        type: 'auth',
+        content: { accessToken }
+      }));
+
+      // Then generate and send the meditation
       const meditation = await generateMeditation(userResponses);
-      console.log('Generated meditation');
 
       ws.send(JSON.stringify({
         type: 'meditation_text',
@@ -191,17 +217,6 @@ server.on('upgrade', (request, socket, head) => {
   wss.handleUpgrade(request, socket, head, (ws) => {
     wss.emit('connection', ws, request);
   });
-});
-
-// Global error handling
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  // Don't exit the process, just log the error
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit the process, just log the error
 });
 
 // Keep the process running
