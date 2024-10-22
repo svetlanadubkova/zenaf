@@ -493,8 +493,7 @@
 
         function connectWebSocket() {
             console.log("Connecting to WebSocket server...");
-            socket = new WebSocket('wss://humezenaf-svetlana-dubkovas-projects.vercel.app');
-            
+            socket = new WebSocket('wss://humezenaf-svetlana-dubkovas-projects.vercel.app/api/websocket');            
             socket.onopen = function(event) {
                 console.log('Connected to server');
                 reconnectAttempts = 0;
