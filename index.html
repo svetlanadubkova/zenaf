@@ -361,11 +361,15 @@
     </div>
 
     <script>
+        // Global variables
         let isConnected = false;
+        let isWaitingForResponse = false;
         let socket;
         let audioContext;
         let analyser;
         let reconnectAttempts = 0;
+        let loadingMessageInterval;
+        let currentAudio;
         const maxReconnectAttempts = 3;
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -492,6 +496,7 @@
             if (socket && isConnected) {
                 socket.close();
                 isConnected = false;
+                isWaitingForResponse = false;
             }
 
             connectWebSocket();
@@ -511,13 +516,18 @@
                 console.log('Connected to server');
                 isConnected = true;
                 reconnectAttempts = 0;
-                socket.send(JSON.stringify({
-                    type: "message.create",
-                    message: {
-                        content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(window.userResponses)}`,
-                        role: "user"
-                    }
-                }));
+                
+                // Only send if not waiting for a response
+                if (!isWaitingForResponse) {
+                    isWaitingForResponse = true;
+                    socket.send(JSON.stringify({
+                        type: "message.create",
+                        message: {
+                            content: `Based on the following user responses, provide a personalized guided meditation in the Zen as Fuck style: ${JSON.stringify(window.userResponses)}`,
+                            role: "user"
+                        }
+                    }));
+                }
             };
             
             socket.onmessage = function(event) {
@@ -528,12 +538,15 @@
                     typeOutText(message.content);
                 } else if (message.type === 'meditation_audio') {
                     playAudioAndVisualize(message.content);
+                    // Reset waiting flag after receiving audio
+                    isWaitingForResponse = false;
                 }
             };
 
             socket.onclose = function(event) {
                 console.log('Disconnected from server');
                 isConnected = false;
+                isWaitingForResponse = false;
                 if (reconnectAttempts < maxReconnectAttempts) {
                     console.log(`Attempting to reconnect... (${reconnectAttempts + 1}/${maxReconnectAttempts})`);
                     reconnectAttempts++;
@@ -546,6 +559,7 @@
             socket.onerror = function(error) {
                 console.error('WebSocket error:', error);
                 isConnected = false;
+                isWaitingForResponse = false;
             };
         }
 
@@ -570,10 +584,16 @@
             window.meditationText.innerHTML = '';
             window.loadingElement.style.display = 'block';
             reconnectAttempts = 0;
+            isWaitingForResponse = false;
             connectWebSocket();
         }
 
         function cycleLoadingMessages() {
+            // Clear any existing interval
+            if (loadingMessageInterval) {
+                clearInterval(loadingMessageInterval);
+            }
+
             const messages = [
                 "preparing your zen...",
                 "give it a sec. chill is coming.",
@@ -586,7 +606,7 @@
             ];
             let index = 0;
             window.loadingMessage.textContent = messages[index];
-            setInterval(() => {
+            loadingMessageInterval = setInterval(() => {
                 index = (index + 1) % messages.length;
                 window.loadingMessage.textContent = messages[index];
             }, 3000);
@@ -606,7 +626,14 @@
         }
 
         function playAudioAndVisualize(audioData) {
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
             const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+            currentAudio = audio;
             
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -691,11 +718,20 @@
             if (socket && isConnected) {
                 socket.close();
                 isConnected = false;
+                isWaitingForResponse = false;
             }
             if (audioContext) {
                 audioContext.close();
                 audioContext = null;
                 analyser = null;
+            }
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            if (loadingMessageInterval) {
+                clearInterval(loadingMessageInterval);
+                loadingMessageInterval = null;
             }
             closeMeditationOverlay();
         }
@@ -704,6 +740,15 @@
             if (socket && isConnected) {
                 socket.close();
                 isConnected = false;
+                isWaitingForResponse = false;
+            }
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            if (loadingMessageInterval) {
+                clearInterval(loadingMessageInterval);
+                loadingMessageInterval = null;
             }
             window.meditationOverlay.style.display = 'none';
             window.meditationText.textContent = '';
@@ -711,6 +756,7 @@
             window.questionContainer.style.display = 'block';
             window.meditationContainer.style.display = 'none';
             window.loadingElement.style.display = 'none';
+
             window.currentQuestionIndex = 0;
             window.userResponses = {};
             const canvas = window.visualizer;
@@ -778,3 +824,5 @@
         // Make submitAnswer global so it can be called from HTML
         window.submitAnswer = submitAnswer;
     </script>
+    </body>
+    </html>
