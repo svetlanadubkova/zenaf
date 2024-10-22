@@ -365,6 +365,34 @@
         // Import Hume Voice SDK
         import { VoiceProvider } from '@humeai/voice-react';
 
+        // Declare variables and functions that need to be globally accessible
+        window.startMeditation = null;
+        window.submitAnswer = null;
+        window.endMeditation = null;
+        window.retryConnection = null;
+
+        // Module-level variables
+        let voiceProvider;
+        let socket;
+        let audioContext;
+        let analyser;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 3;
+
+        // Initialize all functionality when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM fully loaded and parsed');
+            initializeEverything();
+        });
+
+        function initializeEverything() {
+            initializeDOMElements();
+            setupEventListeners();
+            initializeQuestions();
+            initThreeJSScene();
+            setupGlobalFunctions();
+        }
+
         let voiceProvider;
         let socket;
         let audioContext;
